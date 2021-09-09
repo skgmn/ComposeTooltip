@@ -1,14 +1,20 @@
 package com.github.skgmn.composetooltip.sample
 
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.consumeAllChanges
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstrainedLayoutReference
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -18,9 +24,17 @@ import com.github.skgmn.composetooltip.Tooltip
 
 @Composable
 fun MainScreen() {
-    ConstraintLayout(modifier = Modifier.fillMaxSize()) {
+    var screenSize by remember { mutableStateOf(IntSize.Zero) }
+    ConstraintLayout(
+        modifier = Modifier
+            .fillMaxSize()
+            .onSizeChanged { screenSize = it }
+    ) {
         val anchorEdgeState = remember { mutableStateOf<AnchorEdge>(AnchorEdge.Top) }
         val anchorEdge by anchorEdgeState
+
+        var imageBiasX by remember { mutableStateOf(0.5f) }
+        var imageBiasY by remember { mutableStateOf(0.5f) }
 
         val anchor = createRef()
         val arrows = createRefs()
@@ -29,9 +43,22 @@ fun MainScreen() {
             painter = painterResource(R.drawable.dummy),
             contentDescription = "dummy",
             modifier = Modifier
-                .constrainAs(anchor) { centerTo(parent) }
+                .constrainAs(anchor) {
+                    linkTo(
+                        parent.start, parent.top, parent.end, parent.bottom,
+                        horizontalBias = imageBiasX,
+                        verticalBias = imageBiasY
+                    )
+                }
                 .size(64.dp)
                 .background(Color(0xffff0000))
+                .pointerInput(Unit) {
+                    detectDragGestures { change, dragAmount ->
+                        change.consumeAllChanges()
+                        imageBiasX += dragAmount.x / screenSize.width
+                        imageBiasY += dragAmount.y / screenSize.height
+                    }
+                }
         )
 
         AnchorChangeButtons(anchorEdgeState, arrows, anchor)
@@ -48,6 +75,7 @@ private fun ConstraintLayoutScope.AnchorChangeButtons(
     refs: ConstraintLayoutScope.ConstrainedLayoutReferences,
     anchor: ConstrainedLayoutReference
 ) {
+    val padding = 8.dp
     val anchorEdge by anchorEdgeState
     if (anchorEdge != AnchorEdge.Start) {
         Text(
@@ -57,7 +85,7 @@ private fun ConstraintLayoutScope.AnchorChangeButtons(
                     end.linkTo(anchor.start, 8.dp)
                     centerVerticallyTo(anchor)
                 }
-                .padding(4.dp)
+                .padding(padding)
                 .clickable { anchorEdgeState.value = AnchorEdge.Start }
         )
     }
@@ -69,7 +97,7 @@ private fun ConstraintLayoutScope.AnchorChangeButtons(
                     bottom.linkTo(anchor.top, 8.dp)
                     centerHorizontallyTo(anchor)
                 }
-                .padding(4.dp)
+                .padding(padding)
                 .clickable { anchorEdgeState.value = AnchorEdge.Top }
         )
     }
@@ -81,7 +109,7 @@ private fun ConstraintLayoutScope.AnchorChangeButtons(
                     start.linkTo(anchor.end, 8.dp)
                     centerVerticallyTo(anchor)
                 }
-                .padding(4.dp)
+                .padding(padding)
                 .clickable { anchorEdgeState.value = AnchorEdge.End }
         )
     }
@@ -93,7 +121,7 @@ private fun ConstraintLayoutScope.AnchorChangeButtons(
                     top.linkTo(anchor.bottom, 8.dp)
                     centerHorizontallyTo(anchor)
                 }
-                .padding(4.dp)
+                .padding(padding)
                 .clickable { anchorEdgeState.value = AnchorEdge.Bottom }
         )
     }
