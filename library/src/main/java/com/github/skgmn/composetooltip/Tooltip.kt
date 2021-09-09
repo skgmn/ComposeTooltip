@@ -4,8 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.LocalContentColor
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
@@ -25,7 +29,7 @@ fun ConstraintLayoutScope.Tooltip(
     tipWidth: Dp = 24.dp,
     tipHeight: Dp = 8.dp,
     contentPadding: Dp = 12.dp,
-    content: @Composable ColumnScope.() -> Unit,
+    content: @Composable RowScope.() -> Unit,
 ) {
     val (tip, body) = createRefs()
     with(anchorEdge) {
@@ -46,7 +50,7 @@ fun ConstraintLayoutScope.Tooltip(
                     }
                 )
         )
-        Column(
+        Row(
             modifier = Modifier
                 .constrainAs(body) {
                     linkToAnchor(tip, 0.dp, tipPosition)
@@ -56,9 +60,15 @@ fun ConstraintLayoutScope.Tooltip(
                     color = color,
                     shape = RoundedCornerShape(cornerRadius)
                 )
-                .padding(contentPadding)
+                .padding(contentPadding),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            content()
+            CompositionLocalProvider(
+                LocalContentColor provides contentColorFor(color)
+            ) {
+                content()
+            }
         }
     }
 }
