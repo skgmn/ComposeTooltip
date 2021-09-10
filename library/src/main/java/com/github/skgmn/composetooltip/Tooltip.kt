@@ -30,18 +30,34 @@ fun ConstraintLayoutScope.Tooltip(
     tipHeight: Dp = 8.dp,
     contentPadding: Dp = 12.dp,
     content: @Composable RowScope.() -> Unit,
-) {
-    val (tip, body) = createRefs()
-    with(anchorEdge) {
-        Box(
-            modifier = Modifier
-                .constrainAs(tip) {
-                    linkToAnchor(anchor, margin, anchorPosition)
-                }
-                .tipPadding(cornerRadius)
+) = with(anchorEdge) {
+    val (contactPoint, tangent, tooltipContainer) = createRefs()
+
+    Spacer(
+        modifier = Modifier
+            .size(selectWidth(1.dp, 0.dp), selectHeight(1.dp, 0.dp))
+            .constrainAs(contactPoint) {
+                stickTo(anchor, margin, anchorPosition)
+            }
+    )
+    val tangentWidth = cornerRadius * 2 + tipWidth
+    Spacer(
+        modifier = Modifier
+            .size(selectWidth(tangentWidth, 0.dp), selectHeight(tangentWidth, 0.dp))
+            .constrainAs(tangent) {
+                stickTo(contactPoint, 0.dp, 0.5f)
+            }
+    )
+    TooltipContainer(
+        ref = tooltipContainer,
+        tangent = tangent,
+        cornerRadius = cornerRadius,
+        tipPosition = tipPosition,
+        tip = {
+            Box(modifier = Modifier
                 .size(
-                    width = anchorEdge.selectWidth(tipWidth, tipHeight),
-                    height = anchorEdge.selectHeight(tipWidth, tipHeight)
+                    width = selectWidth(tipWidth, tipHeight),
+                    height = selectHeight(tipWidth, tipHeight)
                 )
                 .background(
                     color = color,
@@ -49,26 +65,26 @@ fun ConstraintLayoutScope.Tooltip(
                         drawTip(size, layoutDirection)
                     }
                 )
-        )
-        Row(
-            modifier = Modifier
-                .constrainAs(body) {
-                    linkToAnchor(tip, 0.dp, tipPosition)
-                }
-                .minSize(cornerRadius, tipWidth, tipHeight)
-                .background(
-                    color = color,
-                    shape = RoundedCornerShape(cornerRadius)
-                )
-                .padding(contentPadding),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            CompositionLocalProvider(
-                LocalContentColor provides contentColorFor(color)
+            )
+        },
+        content = {
+            Row(
+                modifier = Modifier
+                    .minSize(cornerRadius, tipWidth, tipHeight)
+                    .background(
+                        color = color,
+                        shape = RoundedCornerShape(cornerRadius)
+                    )
+                    .padding(contentPadding),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                content()
+                CompositionLocalProvider(
+                    LocalContentColor provides contentColorFor(color)
+                ) {
+                    content()
+                }
             }
         }
-    }
+    )
 }

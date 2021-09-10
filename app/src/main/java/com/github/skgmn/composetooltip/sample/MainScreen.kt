@@ -6,8 +6,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Slider
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.consumeAllChanges
@@ -16,6 +18,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstrainScope
 import androidx.constraintlayout.compose.ConstrainedLayoutReference
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintLayoutScope
@@ -36,8 +39,14 @@ fun MainScreen() {
         var imageBiasX by remember { mutableStateOf(0.5f) }
         var imageBiasY by remember { mutableStateOf(0.5f) }
 
+        val tipPositionState = remember { mutableStateOf(0.5f) }
+        val anchorPositionState = remember { mutableStateOf(0.5f) }
+
         val anchor = createRef()
         val arrows = createRefs()
+        val bottomPanel = createRef()
+
+        BottomPanel(bottomPanel, tipPositionState, anchorPositionState)
 
         Image(
             painter = painterResource(R.drawable.dummy),
@@ -63,8 +72,66 @@ fun MainScreen() {
 
         AnchorChangeButtons(anchorEdgeState, arrows, anchor)
 
-        Tooltip(anchor = anchor, anchorEdge = anchorEdge) {
-            Text(text = "Drag image 😄")
+        Tooltip(
+            anchor = anchor,
+            anchorEdge = anchorEdge,
+            tipPosition = tipPositionState.value,
+            anchorPosition = anchorPositionState.value
+        ) {
+            Text(
+                text = "fiojeoaifjewoaifjweofjaweoifjwoiefjaowejfoawejiofajweiofjaweoijfaewoijfoiawefj",
+                modifier = Modifier.widthIn(max = 150.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ConstraintLayoutScope.BottomPanel(
+    ref: ConstrainedLayoutReference,
+    tipPositionState: MutableState<Float>,
+    anchorPositionState: MutableState<Float>
+) {
+    val firstColumnWeight = 0.3f
+    Column(
+        modifier = Modifier
+            .constrainAs(ref) {
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                bottom.linkTo(parent.bottom)
+            }
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Tip position",
+                modifier = Modifier.weight(firstColumnWeight)
+            )
+            Slider(
+                value = tipPositionState.value,
+                onValueChange = { tipPositionState.value = it },
+                modifier = Modifier.weight(1f - firstColumnWeight)
+            )
+        }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Anchor position",
+                modifier = Modifier.weight(firstColumnWeight)
+            )
+            Slider(
+                value = anchorPositionState.value,
+                onValueChange = { anchorPositionState.value = it },
+                modifier = Modifier.weight(1f - firstColumnWeight)
+            )
         }
     }
 }
