@@ -33,7 +33,6 @@ abstract class AnchorEdge {
     internal abstract fun selectWidth(width: Dp, height: Dp): Dp
     internal abstract fun selectHeight(width: Dp, height: Dp): Dp
     internal abstract fun Modifier.minSize(cornerRadius: Dp, tipWidth: Dp, tipHeight: Dp): Modifier
-    internal abstract fun Modifier.tipPadding(cornerRadius: Dp): Modifier
     internal abstract fun Path.drawTip(size: Size, layoutDirection: LayoutDirection)
 
     abstract class VerticalAnchorEdge : AnchorEdge() {
@@ -43,10 +42,6 @@ abstract class AnchorEdge {
 
         override fun selectHeight(width: Dp, height: Dp): Dp {
             return max(width, height)
-        }
-
-        override fun Modifier.tipPadding(cornerRadius: Dp): Modifier {
-            return padding(vertical = cornerRadius * 2)
         }
 
         override fun Modifier.minSize(cornerRadius: Dp, tipWidth: Dp, tipHeight: Dp): Modifier {
@@ -76,10 +71,6 @@ abstract class AnchorEdge {
 
         override fun Modifier.minSize(cornerRadius: Dp, tipWidth: Dp, tipHeight: Dp): Modifier {
             return widthIn(min = cornerRadius * 2 + max(tipWidth, tipHeight))
-        }
-
-        override fun Modifier.tipPadding(cornerRadius: Dp): Modifier {
-            return padding(horizontal = cornerRadius * 2)
         }
 
         protected fun ConstrainScope.alignHorizontal(
