@@ -11,15 +11,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.LocalContentColor
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.contentColorFor
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstrainedLayoutReference
@@ -34,16 +30,12 @@ import com.github.skgmn.composetooltip.AnchorEdge.Top.stickTo
  *                   [AnchorEdge.Bottom]
  * @param modifier Modifier for tooltip. Do not use layout-related modifiers except size
  *                 constraints.
- * @param color Color of tooltip background
- * @param cornerRadius Corner radius of balloon
+ * @param tooltipStyle Style for tooltip. Can be created by [rememberTooltipStyle]
  * @param tipPosition Value between 0.0 (inclusive) and 1.0 (inclusive) which specifies tip position
  *                    relative to balloon
  * @param anchorPosition Value between 0.0 (inclusive) and 1.0 (inclusive) which specifies tip
  *                       position relative to [anchor]
  * @param margin Margin between tip and [anchor]
- * @param tipWidth Width of tip
- * @param tipHeight Height of tip
- * @param contentPadding Padding between balloon and [content].
  * @param content Content inside balloon. Typically [Text].
  */
 @Composable
@@ -51,14 +43,10 @@ fun ConstraintLayoutScope.Tooltip(
     anchor: ConstrainedLayoutReference,
     anchorEdge: AnchorEdge,
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colors.secondary,
-    cornerRadius: Dp = 8.dp,
+    tooltipStyle: TooltipStyle = rememberTooltipStyle(),
     @FloatRange(from = 0.0, to = 1.0) tipPosition: Float = 0.5f,
     @FloatRange(from = 0.0, to = 1.0) anchorPosition: Float = 0.5f,
     margin: Dp = 8.dp,
-    tipWidth: Dp = 24.dp,
-    tipHeight: Dp = 8.dp,
-    contentPadding: Dp = 12.dp,
     content: @Composable RowScope.() -> Unit,
 ) {
     val (contactPoint, tangent, tooltipContainer) = createRefs()
@@ -70,20 +58,15 @@ fun ConstraintLayoutScope.Tooltip(
         tangent = tangent,
         margin = margin,
         anchorPosition = anchorPosition,
-        cornerRadius = cornerRadius,
-        tipWidth = tipWidth
+        tooltipStyle = tooltipStyle
     )
     TooltipImpl(
         anchorEdge = anchorEdge,
         modifier = modifier.constrainAs(tooltipContainer) {
             stickTo(tangent, 0.dp, tipPosition)
         },
-        cornerRadius = cornerRadius,
+        tooltipStyle = tooltipStyle,
         tipPosition = tipPosition,
-        tipWidth = tipWidth,
-        tipHeight = tipHeight,
-        color = color,
-        contentPadding = contentPadding,
         content = content
     )
 }
@@ -102,16 +85,12 @@ fun ConstraintLayoutScope.Tooltip(
  * @param modifier Modifier for tooltip. Do not use layout-related modifiers except size
  *                 constraints.
  * @param visible Visibility of tooltip
- * @param color Color of tooltip background
- * @param cornerRadius Corner radius of balloon
+ * @param tooltipStyle Style for tooltip. Can be created by [rememberTooltipStyle]
  * @param tipPosition Value between 0.0 (inclusive) and 1.0 (inclusive) which specifies tip position
  *                    relative to balloon
  * @param anchorPosition Value between 0.0 (inclusive) and 1.0 (inclusive) which specifies tip
  *                       position relative to [anchor]
  * @param margin Margin between tip and [anchor]
- * @param tipWidth Width of tip
- * @param tipHeight Height of tip
- * @param contentPadding Padding between balloon and [content].
  * @param content Content inside balloon. Typically [Text].
  */
 @ExperimentalAnimationApi
@@ -123,14 +102,10 @@ fun ConstraintLayoutScope.Tooltip(
     exitTransition: ExitTransition,
     modifier: Modifier = Modifier,
     visible: Boolean = true,
-    color: Color = MaterialTheme.colors.secondary,
-    cornerRadius: Dp = 8.dp,
+    tooltipStyle: TooltipStyle = rememberTooltipStyle(),
     @FloatRange(from = 0.0, to = 1.0) tipPosition: Float = 0.5f,
     @FloatRange(from = 0.0, to = 1.0) anchorPosition: Float = 0.5f,
     margin: Dp = 8.dp,
-    tipWidth: Dp = 24.dp,
-    tipHeight: Dp = 8.dp,
-    contentPadding: Dp = 12.dp,
     content: @Composable RowScope.() -> Unit,
 ) = with(anchorEdge) {
     // I don't know why but AnimatedVisibility without MutableTransitionState does'nt work
@@ -146,8 +121,7 @@ fun ConstraintLayoutScope.Tooltip(
         tangent = tangent,
         margin = margin,
         anchorPosition = anchorPosition,
-        cornerRadius = cornerRadius,
-        tipWidth = tipWidth
+        tooltipStyle = tooltipStyle
     )
     AnimatedVisibility(
         visibleState = visibleState,
@@ -160,12 +134,8 @@ fun ConstraintLayoutScope.Tooltip(
         TooltipImpl(
             modifier = modifier,
             anchorEdge = anchorEdge,
-            cornerRadius = cornerRadius,
             tipPosition = tipPosition,
-            tipWidth = tipWidth,
-            tipHeight = tipHeight,
-            color = color,
-            contentPadding = contentPadding,
+            tooltipStyle = tooltipStyle,
             content = content
         )
     }
@@ -179,9 +149,11 @@ private fun ConstraintLayoutScope.AnchorHelpers(
     tangent: ConstrainedLayoutReference,
     margin: Dp,
     anchorPosition: Float,
-    cornerRadius: Dp,
-    tipWidth: Dp
+    tooltipStyle: TooltipStyle
 ) = with(anchorEdge) {
+    val tangentWidth by derivedStateOf {
+        tooltipStyle.cornerRadius * 2 + tooltipStyle.tipWidth
+    }
     Spacer(
         modifier = Modifier
             .size(selectWidth(1.dp, 0.dp), selectHeight(1.dp, 0.dp))
@@ -189,7 +161,6 @@ private fun ConstraintLayoutScope.AnchorHelpers(
                 stickTo(anchor, margin, anchorPosition)
             }
     )
-    val tangentWidth = cornerRadius * 2 + tipWidth
     Spacer(
         modifier = Modifier
             .size(selectWidth(tangentWidth, 0.dp), selectHeight(tangentWidth, 0.dp))
@@ -202,27 +173,29 @@ private fun ConstraintLayoutScope.AnchorHelpers(
 @Composable
 private fun ConstraintLayoutScope.TooltipImpl(
     anchorEdge: AnchorEdge,
-    cornerRadius: Dp,
     tipPosition: Float,
-    tipWidth: Dp,
-    tipHeight: Dp,
-    color: Color,
-    contentPadding: Dp,
     modifier: Modifier,
-    content: @Composable() (RowScope.() -> Unit)
+    tooltipStyle: TooltipStyle,
+    content: @Composable (RowScope.() -> Unit)
 ) = with(anchorEdge) {
     TooltipContainer(
         modifier = modifier,
-        cornerRadius = cornerRadius,
+        cornerRadius = tooltipStyle.cornerRadius,
         tipPosition = tipPosition,
         tip = {
             Box(modifier = Modifier
                 .size(
-                    width = anchorEdge.selectWidth(tipWidth, tipHeight),
-                    height = anchorEdge.selectHeight(tipWidth, tipHeight)
+                    width = anchorEdge.selectWidth(
+                        tooltipStyle.tipWidth,
+                        tooltipStyle.tipHeight
+                    ),
+                    height = anchorEdge.selectHeight(
+                        tooltipStyle.tipWidth,
+                        tooltipStyle.tipHeight
+                    )
                 )
                 .background(
-                    color = color,
+                    color = tooltipStyle.color,
                     shape = GenericShape { size, layoutDirection ->
                         drawTip(size, layoutDirection)
                     }
@@ -231,18 +204,18 @@ private fun ConstraintLayoutScope.TooltipImpl(
         },
         content = {
             Row(
-                modifier = Modifier.Companion
-                    .minSize(cornerRadius, tipWidth, tipHeight)
+                modifier = Modifier
+                    .minSize(tooltipStyle)
                     .background(
-                        color = color,
-                        shape = RoundedCornerShape(cornerRadius)
+                        color = tooltipStyle.color,
+                        shape = RoundedCornerShape(tooltipStyle.cornerRadius)
                     )
-                    .padding(contentPadding),
+                    .padding(tooltipStyle.contentPadding),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 CompositionLocalProvider(
-                    LocalContentColor provides contentColorFor(color)
+                    LocalContentColor provides contentColorFor(tooltipStyle.color)
                 ) {
                     content()
                 }

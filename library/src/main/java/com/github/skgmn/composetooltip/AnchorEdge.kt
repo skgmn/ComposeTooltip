@@ -35,7 +35,7 @@ abstract class AnchorEdge {
 
     internal abstract fun selectWidth(width: Dp, height: Dp): Dp
     internal abstract fun selectHeight(width: Dp, height: Dp): Dp
-    internal abstract fun Modifier.minSize(cornerRadius: Dp, tipWidth: Dp, tipHeight: Dp): Modifier
+    internal abstract fun Modifier.minSize(tooltipStyle: TooltipStyle): Modifier
     internal abstract fun Path.drawTip(size: Size, layoutDirection: LayoutDirection)
 
     abstract class VerticalAnchorEdge : AnchorEdge() {
@@ -47,7 +47,7 @@ abstract class AnchorEdge {
             return max(width, height)
         }
 
-        override fun Modifier.minSize(cornerRadius: Dp, tipWidth: Dp, tipHeight: Dp): Modifier {
+        override fun Modifier.minSize(tooltipStyle: TooltipStyle): Modifier = with(tooltipStyle) {
             return heightIn(min = cornerRadius * 2 + max(tipWidth, tipHeight))
         }
 
@@ -72,7 +72,7 @@ abstract class AnchorEdge {
             return min(width, height)
         }
 
-        override fun Modifier.minSize(cornerRadius: Dp, tipWidth: Dp, tipHeight: Dp): Modifier {
+        override fun Modifier.minSize(tooltipStyle: TooltipStyle): Modifier = with(tooltipStyle) {
             return widthIn(min = cornerRadius * 2 + max(tipWidth, tipHeight))
         }
 
@@ -137,7 +137,11 @@ abstract class AnchorEdge {
                 Box(
                     modifier = Modifier
                         .constrainAs(tipContainer) {
-                            linkTo(contentContainer.top, contentContainer.bottom, bias = tipPosition)
+                            linkTo(
+                                contentContainer.top,
+                                contentContainer.bottom,
+                                bias = tipPosition
+                            )
                             start.linkTo(contentContainer.end)
                         }
                         .padding(vertical = cornerRadius)
@@ -247,7 +251,11 @@ abstract class AnchorEdge {
                 Box(
                     modifier = Modifier
                         .constrainAs(tipContainer) {
-                            linkTo(contentContainer.top, contentContainer.bottom, bias = tipPosition)
+                            linkTo(
+                                contentContainer.top,
+                                contentContainer.bottom,
+                                bias = tipPosition
+                            )
                             end.linkTo(contentContainer.start)
                         }
                         .padding(vertical = cornerRadius)
