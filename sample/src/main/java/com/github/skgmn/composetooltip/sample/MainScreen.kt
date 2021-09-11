@@ -25,7 +25,7 @@ import androidx.constraintlayout.compose.ConstrainedLayoutReference
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintLayoutScope
 import com.github.skgmn.composetooltip.AnchorEdge
-import com.github.skgmn.composetooltip.EdgePoint
+import com.github.skgmn.composetooltip.EdgePosition
 import com.github.skgmn.composetooltip.Tooltip
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -42,8 +42,8 @@ fun MainScreen() {
         var imageBiasX by remember { mutableStateOf(0.5f) }
         var imageBiasY by remember { mutableStateOf(0.5f) }
 
-        val tipPositionState = remember { mutableStateOf(0.5f) }
-        val anchorPosition = remember { EdgePoint() }
+        val tipPosition = remember { EdgePosition() }
+        val anchorPosition = remember { EdgePosition() }
 
         val tooltipVisibleState = remember { mutableStateOf(true) }
 
@@ -51,7 +51,7 @@ fun MainScreen() {
         val arrows = createRefs()
         val bottomPanel = createRef()
 
-        BottomPanel(bottomPanel, tipPositionState, anchorPosition)
+        BottomPanel(bottomPanel, tipPosition, anchorPosition)
 
         Image(
             painter = painterResource(R.drawable.dummy),
@@ -83,7 +83,7 @@ fun MainScreen() {
             visible = tooltipVisibleState.value,
             enterTransition = fadeIn(),
             exitTransition = fadeOut(),
-            tipPosition = tipPositionState.value,
+            tipPosition = tipPosition,
             anchorPosition = anchorPosition,
             modifier = Modifier
                 .clickable(remember { MutableInteractionSource() }, null) {
@@ -101,8 +101,8 @@ fun MainScreen() {
 @Composable
 private fun ConstraintLayoutScope.BottomPanel(
     ref: ConstrainedLayoutReference,
-    tipPositionState: MutableState<Float>,
-    anchorPosition: EdgePoint
+    tipPosition: EdgePosition,
+    anchorPosition: EdgePosition
 ) {
     val firstColumnWeight = 0.3f
     Column(
@@ -124,8 +124,8 @@ private fun ConstraintLayoutScope.BottomPanel(
                 modifier = Modifier.weight(firstColumnWeight)
             )
             Slider(
-                value = tipPositionState.value,
-                onValueChange = { tipPositionState.value = it },
+                value = tipPosition.percent,
+                onValueChange = { tipPosition.percent = it },
                 modifier = Modifier.weight(1f - firstColumnWeight)
             )
         }

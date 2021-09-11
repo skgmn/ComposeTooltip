@@ -1,34 +1,22 @@
 package com.github.skgmn.composetooltip
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.max
-import androidx.compose.ui.unit.min
+import androidx.compose.ui.unit.*
 import androidx.constraintlayout.compose.ConstrainScope
 import androidx.constraintlayout.compose.ConstrainedLayoutReference
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintLayoutScope
 
 abstract class AnchorEdge {
-    internal abstract fun ConstrainScope.stickTo(
-        anchor: ConstrainedLayoutReference,
-        margin: Dp,
-        bias: Float
-    )
-
     @Composable
     internal abstract fun ConstraintLayoutScope.TooltipContainer(
         modifier: Modifier,
         cornerRadius: Dp,
-        tipPosition: Float,
+        tipPosition: EdgePosition,
         tip: @Composable () -> Unit,
         content: @Composable () -> Unit
     )
@@ -96,15 +84,6 @@ abstract class AnchorEdge {
     }
 
     object Start : VerticalAnchorEdge() {
-        override fun ConstrainScope.stickTo(
-            anchor: ConstrainedLayoutReference,
-            margin: Dp,
-            bias: Float
-        ) {
-            end.linkTo(anchor.start, margin)
-            align(anchor, bias)
-        }
-
         override fun ConstrainScope.outside(anchor: ConstrainedLayoutReference, margin: Dp) {
             end.linkTo(anchor.start, margin)
         }
@@ -130,32 +109,39 @@ abstract class AnchorEdge {
         override fun ConstraintLayoutScope.TooltipContainer(
             modifier: Modifier,
             cornerRadius: Dp,
-            tipPosition: Float,
+            tipPosition: EdgePosition,
             tip: @Composable () -> Unit,
             content: @Composable () -> Unit
         ) {
+            val tipPositionOffset = tipPosition.offset
             ConstraintLayout(modifier = modifier) {
                 val (contentContainer, tipContainer) = createRefs()
                 Box(
-                    modifier = Modifier.constrainAs(contentContainer) {
-                        start.linkTo(parent.start)
-                        top.linkTo(parent.top)
-                        bottom.linkTo(parent.bottom)
-                    }
+                    modifier = Modifier
+                        .constrainAs(contentContainer) {
+                            start.linkTo(parent.start)
+                            top.linkTo(parent.top)
+                            bottom.linkTo(parent.bottom)
+                        }
+                        .padding(
+                            top = if (tipPositionOffset < 0.dp) tipPositionOffset * -2 else 0.dp,
+                            bottom = if (tipPositionOffset > 0.dp) tipPositionOffset * 2 else 0.dp
+                        )
                 ) {
                     content()
                 }
+                val tipPadding = cornerRadius + tipPositionOffset.absoluteValue
                 Box(
                     modifier = Modifier
                         .constrainAs(tipContainer) {
                             linkTo(
                                 contentContainer.top,
                                 contentContainer.bottom,
-                                bias = tipPosition
+                                bias = tipPosition.percent
                             )
                             start.linkTo(contentContainer.end)
                         }
-                        .padding(vertical = cornerRadius)
+                        .padding(top = tipPadding, bottom = tipPadding)
                 ) {
                     tip()
                 }
@@ -164,15 +150,6 @@ abstract class AnchorEdge {
     }
 
     object Top : HorizontalAnchorEdge() {
-        override fun ConstrainScope.stickTo(
-            anchor: ConstrainedLayoutReference,
-            margin: Dp,
-            bias: Float
-        ) {
-            bottom.linkTo(anchor.top, margin)
-            align(anchor, bias)
-        }
-
         override fun ConstrainScope.outside(anchor: ConstrainedLayoutReference, margin: Dp) {
             bottom.linkTo(anchor.top, margin)
         }
@@ -188,28 +165,39 @@ abstract class AnchorEdge {
         override fun ConstraintLayoutScope.TooltipContainer(
             modifier: Modifier,
             cornerRadius: Dp,
-            tipPosition: Float,
+            tipPosition: EdgePosition,
             tip: @Composable () -> Unit,
             content: @Composable () -> Unit
         ) {
+            val tipPositionOffset = tipPosition.offset
             ConstraintLayout(modifier = modifier) {
                 val (contentContainer, tipContainer) = createRefs()
                 Box(
-                    modifier = Modifier.constrainAs(contentContainer) {
-                        start.linkTo(parent.start)
-                        top.linkTo(parent.top)
-                        end.linkTo(parent.end)
-                    }
+                    modifier = Modifier
+                        .constrainAs(contentContainer) {
+                            start.linkTo(parent.start)
+                            top.linkTo(parent.top)
+                            end.linkTo(parent.end)
+                        }
+                        .padding(
+                            start = if (tipPositionOffset < 0.dp) tipPositionOffset * -2 else 0.dp,
+                            end = if (tipPositionOffset > 0.dp) tipPositionOffset * 2 else 0.dp
+                        )
                 ) {
                     content()
                 }
+                val tipPadding = cornerRadius + tipPositionOffset.absoluteValue
                 Box(
                     modifier = Modifier
                         .constrainAs(tipContainer) {
-                            linkTo(contentContainer.start, contentContainer.end, bias = tipPosition)
+                            linkTo(
+                                contentContainer.start,
+                                contentContainer.end,
+                                bias = tipPosition.percent
+                            )
                             top.linkTo(contentContainer.bottom)
                         }
-                        .padding(horizontal = cornerRadius)
+                        .padding(start = tipPadding, end = tipPadding)
                 ) {
                     tip()
                 }
@@ -218,15 +206,6 @@ abstract class AnchorEdge {
     }
 
     object End : VerticalAnchorEdge() {
-        override fun ConstrainScope.stickTo(
-            anchor: ConstrainedLayoutReference,
-            margin: Dp,
-            bias: Float
-        ) {
-            start.linkTo(anchor.end, margin)
-            align(anchor, bias)
-        }
-
         override fun ConstrainScope.outside(anchor: ConstrainedLayoutReference, margin: Dp) {
             start.linkTo(anchor.end, margin)
         }
@@ -252,32 +231,39 @@ abstract class AnchorEdge {
         override fun ConstraintLayoutScope.TooltipContainer(
             modifier: Modifier,
             cornerRadius: Dp,
-            tipPosition: Float,
+            tipPosition: EdgePosition,
             tip: @Composable () -> Unit,
             content: @Composable () -> Unit
         ) {
+            val tipPositionOffset = tipPosition.offset
             ConstraintLayout(modifier = modifier) {
                 val (contentContainer, tipContainer) = createRefs()
                 Box(
-                    modifier = Modifier.constrainAs(contentContainer) {
-                        top.linkTo(parent.top)
-                        end.linkTo(parent.end)
-                        bottom.linkTo(parent.bottom)
-                    }
+                    modifier = Modifier
+                        .constrainAs(contentContainer) {
+                            top.linkTo(parent.top)
+                            end.linkTo(parent.end)
+                            bottom.linkTo(parent.bottom)
+                        }
+                        .padding(
+                            top = if (tipPositionOffset < 0.dp) tipPositionOffset * -2 else 0.dp,
+                            bottom = if (tipPositionOffset > 0.dp) tipPositionOffset * 2 else 0.dp
+                        )
                 ) {
                     content()
                 }
+                val tipPadding = cornerRadius + tipPositionOffset.absoluteValue
                 Box(
                     modifier = Modifier
                         .constrainAs(tipContainer) {
                             linkTo(
                                 contentContainer.top,
                                 contentContainer.bottom,
-                                bias = tipPosition
+                                bias = tipPosition.percent
                             )
                             end.linkTo(contentContainer.start)
                         }
-                        .padding(vertical = cornerRadius)
+                        .padding(top = tipPadding, bottom = tipPadding)
                 ) {
                     tip()
                 }
@@ -286,15 +272,6 @@ abstract class AnchorEdge {
     }
 
     object Bottom : HorizontalAnchorEdge() {
-        override fun ConstrainScope.stickTo(
-            anchor: ConstrainedLayoutReference,
-            margin: Dp,
-            bias: Float
-        ) {
-            top.linkTo(anchor.bottom, margin)
-            align(anchor, bias)
-        }
-
         override fun ConstrainScope.outside(anchor: ConstrainedLayoutReference, margin: Dp) {
             top.linkTo(anchor.bottom, margin)
         }
@@ -310,28 +287,39 @@ abstract class AnchorEdge {
         override fun ConstraintLayoutScope.TooltipContainer(
             modifier: Modifier,
             cornerRadius: Dp,
-            tipPosition: Float,
+            tipPosition: EdgePosition,
             tip: @Composable () -> Unit,
             content: @Composable () -> Unit
         ) {
+            val tipPositionOffset = tipPosition.offset
             ConstraintLayout(modifier = modifier) {
                 val (contentContainer, tipContainer) = createRefs()
                 Box(
-                    modifier = Modifier.constrainAs(contentContainer) {
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                        bottom.linkTo(parent.bottom)
-                    }
+                    modifier = Modifier
+                        .constrainAs(contentContainer) {
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                            bottom.linkTo(parent.bottom)
+                        }
+                        .padding(
+                            start = if (tipPositionOffset < 0.dp) tipPositionOffset * -2 else 0.dp,
+                            end = if (tipPositionOffset > 0.dp) tipPositionOffset * 2 else 0.dp
+                        )
                 ) {
                     content()
                 }
+                val tipPadding = cornerRadius + tipPositionOffset.absoluteValue
                 Box(
                     modifier = Modifier
                         .constrainAs(tipContainer) {
-                            linkTo(contentContainer.start, contentContainer.end, bias = tipPosition)
+                            linkTo(
+                                contentContainer.start,
+                                contentContainer.end,
+                                bias = tipPosition.percent
+                            )
                             bottom.linkTo(contentContainer.top)
                         }
-                        .padding(horizontal = cornerRadius)
+                        .padding(start = tipPadding, end = tipPadding)
                 ) {
                     tip()
                 }

@@ -7,13 +7,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-class EdgePoint(
+class EdgePosition(
     @FloatRange(from = 0.0, to = 1.0)
     percent: Float = 0.5f,
-    margin: Dp = 0.dp
+    offset: Dp = 0.dp
 ) {
     @get:FloatRange(from = 0.0, to = 1.0)
     @setparam:FloatRange(from = 0.0, to = 1.0)
     var percent by mutableStateOf(percent)
-    var margin by mutableStateOf(margin)
+    var offset by mutableStateOf(offset)
 }
