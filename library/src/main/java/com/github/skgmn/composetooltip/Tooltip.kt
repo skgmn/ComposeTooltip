@@ -25,14 +25,12 @@ import androidx.constraintlayout.compose.ConstraintLayoutScope
  *
  * @param anchor [ConstrainedLayoutReference] to locate this tooltip nearby
  * @param anchorEdge Can be either of [AnchorEdge.Start], [AnchorEdge.Top], [AnchorEdge.End],
- *                   [AnchorEdge.Bottom]
+ *                   or [AnchorEdge.Bottom]
  * @param modifier Modifier for tooltip. Do not use layout-related modifiers except size
  *                 constraints.
  * @param tooltipStyle Style for tooltip. Can be created by [rememberTooltipStyle]
- * @param tipPosition Value between 0.0 (inclusive) and 1.0 (inclusive) which specifies tip position
- *                    relative to balloon
- * @param anchorPosition Value between 0.0 (inclusive) and 1.0 (inclusive) which specifies tip
- *                       position relative to [anchor]
+ * @param tipPosition Tip position relative to balloon
+ * @param anchorPosition Position on the [anchor]'s edge where the tip points out.
  * @param margin Margin between tip and [anchor]
  * @param content Content inside balloon. Typically [Text].
  */
@@ -76,7 +74,7 @@ fun ConstraintLayoutScope.Tooltip(
  *
  * @param anchor [ConstrainedLayoutReference] to locate this tooltip nearby
  * @param anchorEdge Can be either of [AnchorEdge.Start], [AnchorEdge.Top], [AnchorEdge.End],
- *                   [AnchorEdge.Bottom]
+ *                   or [AnchorEdge.Bottom]
  * @param enterTransition [EnterTransition] to be applied when the [visible] becomes true.
  *                        Types of [EnterTransition] are listed [here](https://developer.android.com/jetpack/compose/animation#entertransition).
  * @param exitTransition [ExitTransition] to be applied when the [visible] becomes false.
@@ -85,10 +83,8 @@ fun ConstraintLayoutScope.Tooltip(
  *                 constraints.
  * @param visible Visibility of tooltip
  * @param tooltipStyle Style for tooltip. Can be created by [rememberTooltipStyle]
- * @param tipPosition Value between 0.0 (inclusive) and 1.0 (inclusive) which specifies tip position
- *                    relative to balloon
- * @param anchorPosition Value between 0.0 (inclusive) and 1.0 (inclusive) which specifies tip
- *                       position relative to [anchor]
+ * @param tipPosition Tip position relative to balloon
+ * @param anchorPosition Position on the [anchor]'s edge where the tip points out.
  * @param margin Margin between tip and [anchor]
  * @param content Content inside balloon. Typically [Text].
  */
