@@ -45,25 +45,24 @@ fun ConstraintLayoutScope.Tooltip(
     modifier: Modifier = Modifier,
     tooltipStyle: TooltipStyle = rememberTooltipStyle(),
     @FloatRange(from = 0.0, to = 1.0) tipPosition: Float = 0.5f,
-    @FloatRange(from = 0.0, to = 1.0) anchorPosition: Float = 0.5f,
+    anchorPosition: EdgePoint = remember { EdgePoint() },
     margin: Dp = 8.dp,
     content: @Composable RowScope.() -> Unit,
 ) {
-    val (contactPoint, tangent, tooltipContainer) = createRefs()
+    val refs = remember { TooltipReferences(this@Tooltip) }
 
     AnchorHelpers(
         anchorEdge = anchorEdge,
         anchor = anchor,
-        contactPoint = contactPoint,
-        tangent = tangent,
+        refs = refs,
         margin = margin,
         anchorPosition = anchorPosition,
         tooltipStyle = tooltipStyle
     )
     TooltipImpl(
         anchorEdge = anchorEdge,
-        modifier = modifier.constrainAs(tooltipContainer) {
-            stickTo(tangent, 0.dp, tipPosition)
+        modifier = modifier.constrainAs(refs.tooltipContainer) {
+            stickTo(refs.tangent, 0.dp, tipPosition)
         },
         tooltipStyle = tooltipStyle,
         tipPosition = tipPosition,
@@ -104,7 +103,7 @@ fun ConstraintLayoutScope.Tooltip(
     visible: Boolean = true,
     tooltipStyle: TooltipStyle = rememberTooltipStyle(),
     @FloatRange(from = 0.0, to = 1.0) tipPosition: Float = 0.5f,
-    @FloatRange(from = 0.0, to = 1.0) anchorPosition: Float = 0.5f,
+    anchorPosition: EdgePoint = remember { EdgePoint() },
     margin: Dp = 8.dp,
     content: @Composable RowScope.() -> Unit,
 ) = with(anchorEdge) {
@@ -112,21 +111,20 @@ fun ConstraintLayoutScope.Tooltip(
     val visibleState = remember { MutableTransitionState(visible) }
     visibleState.targetState = visible
 
-    val (contactPoint, tangent, tooltipContainer) = createRefs()
+    val refs = remember { TooltipReferences(this@Tooltip) }
 
     AnchorHelpers(
         anchorEdge = anchorEdge,
         anchor = anchor,
-        contactPoint = contactPoint,
-        tangent = tangent,
+        refs = refs,
         margin = margin,
         anchorPosition = anchorPosition,
         tooltipStyle = tooltipStyle
     )
     AnimatedVisibility(
         visibleState = visibleState,
-        modifier = Modifier.constrainAs(tooltipContainer) {
-            stickTo(tangent, 0.dp, tipPosition)
+        modifier = Modifier.constrainAs(refs.tooltipContainer) {
+            stickTo(refs.tangent, 0.dp, tipPosition)
         },
         enter = enterTransition,
         exit = exitTransition
@@ -145,27 +143,68 @@ fun ConstraintLayoutScope.Tooltip(
 private fun ConstraintLayoutScope.AnchorHelpers(
     anchorEdge: AnchorEdge,
     anchor: ConstrainedLayoutReference,
-    contactPoint: ConstrainedLayoutReference,
-    tangent: ConstrainedLayoutReference,
+    refs: TooltipReferences,
     margin: Dp,
-    anchorPosition: Float,
+    anchorPosition: EdgePoint,
     tooltipStyle: TooltipStyle
+) {
+    ContactPoint(anchor, anchorEdge, anchorPosition, refs, margin)
+    Tangent(anchorEdge, tooltipStyle, refs)
+}
+
+@Composable
+private fun ConstraintLayoutScope.ContactPoint(
+    anchor: ConstrainedLayoutReference,
+    anchorEdge: AnchorEdge,
+    anchorPosition: EdgePoint,
+    refs: TooltipReferences,
+    margin: Dp
 ) = with(anchorEdge) {
-    val tangentWidth by derivedStateOf {
-        tooltipStyle.cornerRadius * 2 + tooltipStyle.tipWidth
+    val positionOffset = anchorPosition.margin
+    if (positionOffset == 0.dp) {
+        Spacer(
+            modifier = Modifier
+                .size(selectWidth(1.dp, 0.dp), selectHeight(1.dp, 0.dp))
+                .constrainAs(refs.contactPoint) {
+                    outside(anchor, margin)
+                    align(anchor, anchorPosition.percent)
+                }
+        )
+    } else {
+        Spacer(
+            modifier = Modifier
+                .size(0.dp, 0.dp)
+                .constrainAs(refs.contactPointOrigin) {
+                    align(anchor, anchorPosition.percent)
+                }
+        )
+        Spacer(
+            modifier = Modifier
+                .size(0.dp, 0.dp)
+                .constrainAs(refs.contactPoint) {
+                    outside(anchor, margin)
+                    if (positionOffset > 0.dp) {
+                        nextTo(refs.contactPointOrigin, positionOffset)
+                    } else {
+                        beforeTo(refs.contactPointOrigin, -positionOffset)
+                    }
+                }
+        )
     }
-    Spacer(
-        modifier = Modifier
-            .size(selectWidth(1.dp, 0.dp), selectHeight(1.dp, 0.dp))
-            .constrainAs(contactPoint) {
-                stickTo(anchor, margin, anchorPosition)
-            }
-    )
+}
+
+@Composable
+private fun ConstraintLayoutScope.Tangent(
+    anchorEdge: AnchorEdge,
+    tooltipStyle: TooltipStyle,
+    refs: TooltipReferences
+) = with(anchorEdge) {
+    val tangentWidth = tooltipStyle.cornerRadius * 2 + tooltipStyle.tipWidth
     Spacer(
         modifier = Modifier
             .size(selectWidth(tangentWidth, 0.dp), selectHeight(tangentWidth, 0.dp))
-            .constrainAs(tangent) {
-                stickTo(contactPoint, 0.dp, 0.5f)
+            .constrainAs(refs.tangent) {
+                stickTo(refs.contactPoint, 0.dp, 0.5f)
             }
     )
 }
@@ -222,4 +261,11 @@ private fun ConstraintLayoutScope.TooltipImpl(
             }
         }
     )
+}
+
+private class TooltipReferences(scope: ConstraintLayoutScope) {
+    val contactPointOrigin = scope.createRef()
+    val contactPoint = scope.createRef()
+    val tangent = scope.createRef()
+    val tooltipContainer = scope.createRef()
 }

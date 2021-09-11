@@ -25,6 +25,7 @@ import androidx.constraintlayout.compose.ConstrainedLayoutReference
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintLayoutScope
 import com.github.skgmn.composetooltip.AnchorEdge
+import com.github.skgmn.composetooltip.EdgePoint
 import com.github.skgmn.composetooltip.Tooltip
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -42,7 +43,7 @@ fun MainScreen() {
         var imageBiasY by remember { mutableStateOf(0.5f) }
 
         val tipPositionState = remember { mutableStateOf(0.5f) }
-        val anchorPositionState = remember { mutableStateOf(0.5f) }
+        val anchorPosition = remember { EdgePoint() }
 
         val tooltipVisibleState = remember { mutableStateOf(true) }
 
@@ -50,7 +51,7 @@ fun MainScreen() {
         val arrows = createRefs()
         val bottomPanel = createRef()
 
-        BottomPanel(bottomPanel, tipPositionState, anchorPositionState)
+        BottomPanel(bottomPanel, tipPositionState, anchorPosition)
 
         Image(
             painter = painterResource(R.drawable.dummy),
@@ -83,7 +84,7 @@ fun MainScreen() {
             enterTransition = fadeIn(),
             exitTransition = fadeOut(),
             tipPosition = tipPositionState.value,
-            anchorPosition = anchorPositionState.value,
+            anchorPosition = anchorPosition,
             modifier = Modifier
                 .clickable(remember { MutableInteractionSource() }, null) {
                     tooltipVisibleState.value = false
@@ -101,7 +102,7 @@ fun MainScreen() {
 private fun ConstraintLayoutScope.BottomPanel(
     ref: ConstrainedLayoutReference,
     tipPositionState: MutableState<Float>,
-    anchorPositionState: MutableState<Float>
+    anchorPosition: EdgePoint
 ) {
     val firstColumnWeight = 0.3f
     Column(
@@ -139,8 +140,8 @@ private fun ConstraintLayoutScope.BottomPanel(
                 modifier = Modifier.weight(firstColumnWeight)
             )
             Slider(
-                value = anchorPositionState.value,
-                onValueChange = { anchorPositionState.value = it },
+                value = anchorPosition.percent,
+                onValueChange = { anchorPosition.percent = it },
                 modifier = Modifier.weight(1f - firstColumnWeight)
             )
         }

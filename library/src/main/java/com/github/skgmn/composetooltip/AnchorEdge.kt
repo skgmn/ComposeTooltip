@@ -33,12 +33,29 @@ abstract class AnchorEdge {
         content: @Composable () -> Unit
     )
 
+    internal abstract fun ConstrainScope.outside(anchor: ConstrainedLayoutReference, margin: Dp)
+    internal abstract fun ConstrainScope.align(anchor: ConstrainedLayoutReference, bias: Float)
+    internal abstract fun ConstrainScope.nextTo(anchor: ConstrainedLayoutReference, margin: Dp)
+    internal abstract fun ConstrainScope.beforeTo(anchor: ConstrainedLayoutReference, margin: Dp)
+
     internal abstract fun selectWidth(width: Dp, height: Dp): Dp
     internal abstract fun selectHeight(width: Dp, height: Dp): Dp
     internal abstract fun Modifier.minSize(tooltipStyle: TooltipStyle): Modifier
     internal abstract fun Path.drawTip(size: Size, layoutDirection: LayoutDirection)
 
     abstract class VerticalAnchorEdge : AnchorEdge() {
+        override fun ConstrainScope.align(anchor: ConstrainedLayoutReference, bias: Float) {
+            linkTo(anchor.top, anchor.bottom, bias = bias)
+        }
+
+        override fun ConstrainScope.nextTo(anchor: ConstrainedLayoutReference, margin: Dp) {
+            top.linkTo(anchor.bottom, margin)
+        }
+
+        override fun ConstrainScope.beforeTo(anchor: ConstrainedLayoutReference, margin: Dp) {
+            bottom.linkTo(anchor.top, margin)
+        }
+
         override fun selectWidth(width: Dp, height: Dp): Dp {
             return min(width, height)
         }
@@ -50,20 +67,21 @@ abstract class AnchorEdge {
         override fun Modifier.minSize(tooltipStyle: TooltipStyle): Modifier = with(tooltipStyle) {
             return heightIn(min = cornerRadius * 2 + max(tipWidth, tipHeight))
         }
-
-        protected fun ConstrainScope.alignVertical(
-            anchor: ConstrainedLayoutReference,
-            bias: Float
-        ) {
-            linkTo(
-                top = anchor.top,
-                bottom = anchor.bottom,
-                bias = bias
-            )
-        }
     }
 
     abstract class HorizontalAnchorEdge : AnchorEdge() {
+        override fun ConstrainScope.align(anchor: ConstrainedLayoutReference, bias: Float) {
+            linkTo(anchor.start, anchor.end, bias = bias)
+        }
+
+        override fun ConstrainScope.nextTo(anchor: ConstrainedLayoutReference, margin: Dp) {
+            start.linkTo(anchor.end, margin)
+        }
+
+        override fun ConstrainScope.beforeTo(anchor: ConstrainedLayoutReference, margin: Dp) {
+            end.linkTo(anchor.start, margin)
+        }
+
         override fun selectWidth(width: Dp, height: Dp): Dp {
             return max(width, height)
         }
@@ -75,17 +93,6 @@ abstract class AnchorEdge {
         override fun Modifier.minSize(tooltipStyle: TooltipStyle): Modifier = with(tooltipStyle) {
             return widthIn(min = cornerRadius * 2 + max(tipWidth, tipHeight))
         }
-
-        protected fun ConstrainScope.alignHorizontal(
-            anchor: ConstrainedLayoutReference,
-            bias: Float
-        ) {
-            linkTo(
-                start = anchor.start,
-                end = anchor.end,
-                bias = bias
-            )
-        }
     }
 
     object Start : VerticalAnchorEdge() {
@@ -95,7 +102,11 @@ abstract class AnchorEdge {
             bias: Float
         ) {
             end.linkTo(anchor.start, margin)
-            alignVertical(anchor, bias)
+            align(anchor, bias)
+        }
+
+        override fun ConstrainScope.outside(anchor: ConstrainedLayoutReference, margin: Dp) {
+            end.linkTo(anchor.start, margin)
         }
 
         override fun Path.drawTip(size: Size, layoutDirection: LayoutDirection) {
@@ -159,7 +170,11 @@ abstract class AnchorEdge {
             bias: Float
         ) {
             bottom.linkTo(anchor.top, margin)
-            alignHorizontal(anchor, bias)
+            align(anchor, bias)
+        }
+
+        override fun ConstrainScope.outside(anchor: ConstrainedLayoutReference, margin: Dp) {
+            bottom.linkTo(anchor.top, margin)
         }
 
         override fun Path.drawTip(size: Size, layoutDirection: LayoutDirection) {
@@ -209,7 +224,11 @@ abstract class AnchorEdge {
             bias: Float
         ) {
             start.linkTo(anchor.end, margin)
-            alignVertical(anchor, bias)
+            align(anchor, bias)
+        }
+
+        override fun ConstrainScope.outside(anchor: ConstrainedLayoutReference, margin: Dp) {
+            start.linkTo(anchor.end, margin)
         }
 
         override fun Path.drawTip(size: Size, layoutDirection: LayoutDirection) {
@@ -273,7 +292,11 @@ abstract class AnchorEdge {
             bias: Float
         ) {
             top.linkTo(anchor.bottom, margin)
-            alignHorizontal(anchor, bias)
+            align(anchor, bias)
+        }
+
+        override fun ConstrainScope.outside(anchor: ConstrainedLayoutReference, margin: Dp) {
+            top.linkTo(anchor.bottom, margin)
         }
 
         override fun Path.drawTip(size: Size, layoutDirection: LayoutDirection) {
