@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.LocalContentColor
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.material.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -25,6 +26,26 @@ import androidx.constraintlayout.compose.ConstrainedLayoutReference
 import androidx.constraintlayout.compose.ConstraintLayoutScope
 import com.github.skgmn.composetooltip.AnchorEdge.Top.stickTo
 
+/**
+ * Show a tooltip near to [anchor].
+ *
+ * @param anchor [ConstrainedLayoutReference] to locate this tooltip nearby
+ * @param anchorEdge Can be either of [AnchorEdge.Start], [AnchorEdge.Top], [AnchorEdge.End],
+ *                   [AnchorEdge.Bottom]
+ * @param modifier Modifier for tooltip. Do not use layout-related modifiers except size
+ *                 constraints.
+ * @param color Color of tooltip background
+ * @param cornerRadius Corner radius of balloon
+ * @param tipPosition Value between 0.0 (inclusive) and 1.0 (inclusive) which specifies tip position
+ *                    relative to balloon
+ * @param anchorPosition Value between 0.0 (inclusive) and 1.0 (inclusive) which specifies tip
+ *                       position relative to [anchor]
+ * @param margin Margin between tip and [anchor]
+ * @param tipWidth Width of tip
+ * @param tipHeight Height of tip
+ * @param contentPadding Padding between balloon and [content].
+ * @param content Content inside balloon. Typically [Text].
+ */
 @Composable
 fun ConstraintLayoutScope.Tooltip(
     anchor: ConstrainedLayoutReference,
@@ -67,6 +88,32 @@ fun ConstraintLayoutScope.Tooltip(
     )
 }
 
+/**
+ * Show a tooltip near to [anchor] with transition.
+ * As [AnimatedVisibility] is experimental, this function is also experimental.
+ *
+ * @param anchor [ConstrainedLayoutReference] to locate this tooltip nearby
+ * @param anchorEdge Can be either of [AnchorEdge.Start], [AnchorEdge.Top], [AnchorEdge.End],
+ *                   [AnchorEdge.Bottom]
+ * @param enterTransition [EnterTransition] to be applied when the [visible] becomes true.
+ *                        Types of [EnterTransition] are listed [here](https://developer.android.com/jetpack/compose/animation#entertransition).
+ * @param exitTransition [ExitTransition] to be applied when the [visible] becomes false.
+ *                       Types of [ExitTransition] are listed [here](https://developer.android.com/jetpack/compose/animation#exittransition).
+ * @param modifier Modifier for tooltip. Do not use layout-related modifiers except size
+ *                 constraints.
+ * @param visible Visibility of tooltip
+ * @param color Color of tooltip background
+ * @param cornerRadius Corner radius of balloon
+ * @param tipPosition Value between 0.0 (inclusive) and 1.0 (inclusive) which specifies tip position
+ *                    relative to balloon
+ * @param anchorPosition Value between 0.0 (inclusive) and 1.0 (inclusive) which specifies tip
+ *                       position relative to [anchor]
+ * @param margin Margin between tip and [anchor]
+ * @param tipWidth Width of tip
+ * @param tipHeight Height of tip
+ * @param contentPadding Padding between balloon and [content].
+ * @param content Content inside balloon. Typically [Text].
+ */
 @ExperimentalAnimationApi
 @Composable
 fun ConstraintLayoutScope.Tooltip(
