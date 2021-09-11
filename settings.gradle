@@ -7,5 +7,5 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "ComposeTooltip"
-include ':app'
+include ':sample'
 include ':library'
