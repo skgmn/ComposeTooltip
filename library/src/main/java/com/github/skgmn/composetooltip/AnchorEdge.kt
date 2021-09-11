@@ -1,17 +1,21 @@
 package com.github.skgmn.composetooltip
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.max
+import androidx.compose.ui.unit.min
 import androidx.constraintlayout.compose.ConstrainScope
 import androidx.constraintlayout.compose.ConstrainedLayoutReference
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintLayoutScope
-import com.github.skgmn.composetooltip.AnchorEdge.Start.stickTo
-import com.github.skgmn.composetooltip.AnchorEdge.Top.stickTo
 
 abstract class AnchorEdge {
     internal abstract fun ConstrainScope.stickTo(
@@ -22,8 +26,7 @@ abstract class AnchorEdge {
 
     @Composable
     internal abstract fun ConstraintLayoutScope.TooltipContainer(
-        ref: ConstrainedLayoutReference,
-        tangent: ConstrainedLayoutReference,
+        modifier: Modifier,
         cornerRadius: Dp,
         tipPosition: Float,
         tip: @Composable () -> Unit,
@@ -114,16 +117,13 @@ abstract class AnchorEdge {
 
         @Composable
         override fun ConstraintLayoutScope.TooltipContainer(
-            ref: ConstrainedLayoutReference,
-            tangent: ConstrainedLayoutReference,
+            modifier: Modifier,
             cornerRadius: Dp,
             tipPosition: Float,
             tip: @Composable () -> Unit,
             content: @Composable () -> Unit
         ) {
-            ConstraintLayout(modifier = Modifier.constrainAs(ref) {
-                stickTo(tangent, 0.dp, tipPosition)
-            }) {
+            ConstraintLayout(modifier = modifier) {
                 val (contentContainer, tipContainer) = createRefs()
                 Box(
                     modifier = Modifier.constrainAs(contentContainer) {
@@ -167,16 +167,13 @@ abstract class AnchorEdge {
 
         @Composable
         override fun ConstraintLayoutScope.TooltipContainer(
-            ref: ConstrainedLayoutReference,
-            tangent: ConstrainedLayoutReference,
+            modifier: Modifier,
             cornerRadius: Dp,
             tipPosition: Float,
             tip: @Composable () -> Unit,
             content: @Composable () -> Unit
         ) {
-            ConstraintLayout(modifier = Modifier.constrainAs(ref) {
-                stickTo(tangent, 0.dp, tipPosition)
-            }) {
+            ConstraintLayout(modifier = modifier) {
                 val (contentContainer, tipContainer) = createRefs()
                 Box(
                     modifier = Modifier.constrainAs(contentContainer) {
@@ -230,16 +227,13 @@ abstract class AnchorEdge {
 
         @Composable
         override fun ConstraintLayoutScope.TooltipContainer(
-            ref: ConstrainedLayoutReference,
-            tangent: ConstrainedLayoutReference,
+            modifier: Modifier,
             cornerRadius: Dp,
             tipPosition: Float,
             tip: @Composable () -> Unit,
             content: @Composable () -> Unit
         ) {
-            ConstraintLayout(modifier = Modifier.constrainAs(ref) {
-                stickTo(tangent, 0.dp, tipPosition)
-            }) {
+            ConstraintLayout(modifier = modifier) {
                 val (contentContainer, tipContainer) = createRefs()
                 Box(
                     modifier = Modifier.constrainAs(contentContainer) {
@@ -283,16 +277,13 @@ abstract class AnchorEdge {
 
         @Composable
         override fun ConstraintLayoutScope.TooltipContainer(
-            ref: ConstrainedLayoutReference,
-            tangent: ConstrainedLayoutReference,
+            modifier: Modifier,
             cornerRadius: Dp,
             tipPosition: Float,
             tip: @Composable () -> Unit,
             content: @Composable () -> Unit
         ) {
-            ConstraintLayout(modifier = Modifier.constrainAs(ref) {
-                stickTo(tangent, 0.dp, tipPosition)
-            }) {
+            ConstraintLayout(modifier = modifier) {
                 val (contentContainer, tipContainer) = createRefs()
                 Box(
                     modifier = Modifier.constrainAs(contentContainer) {

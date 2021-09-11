@@ -1,10 +1,13 @@
 package com.github.skgmn.composetooltip.sample
 
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Slider
 import androidx.compose.material.Text
@@ -18,13 +21,13 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.ConstrainScope
 import androidx.constraintlayout.compose.ConstrainedLayoutReference
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.ConstraintLayoutScope
 import com.github.skgmn.composetooltip.AnchorEdge
 import com.github.skgmn.composetooltip.Tooltip
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun MainScreen() {
     var screenSize by remember { mutableStateOf(IntSize.Zero) }
@@ -34,13 +37,14 @@ fun MainScreen() {
             .onSizeChanged { screenSize = it }
     ) {
         val anchorEdgeState = remember { mutableStateOf<AnchorEdge>(AnchorEdge.Top) }
-        val anchorEdge by anchorEdgeState
 
         var imageBiasX by remember { mutableStateOf(0.5f) }
         var imageBiasY by remember { mutableStateOf(0.5f) }
 
         val tipPositionState = remember { mutableStateOf(0.5f) }
         val anchorPositionState = remember { mutableStateOf(0.5f) }
+
+        val tooltipVisibleState = remember { mutableStateOf(true) }
 
         val anchor = createRef()
         val arrows = createRefs()
@@ -70,17 +74,24 @@ fun MainScreen() {
                 }
         )
 
-        AnchorChangeButtons(anchorEdgeState, arrows, anchor)
+        AnchorChangeButtons(anchorEdgeState, tooltipVisibleState, arrows, anchor)
 
         Tooltip(
             anchor = anchor,
-            anchorEdge = anchorEdge,
+            anchorEdge = anchorEdgeState.value,
+            visible = tooltipVisibleState.value,
+            enterTransition = fadeIn(),
+            exitTransition = fadeOut(),
             tipPosition = tipPositionState.value,
-            anchorPosition = anchorPositionState.value
+            anchorPosition = anchorPositionState.value,
+            modifier = Modifier
+                .clickable(remember { MutableInteractionSource() }, null) {
+                    tooltipVisibleState.value = false
+                }
         ) {
             Text(
-                text = "fiojeoaifjewoaifjweofjaweoifjwoiefjaowejfoawejiofajweiofjaweoijfaewoijfoiawefj",
-                modifier = Modifier.widthIn(max = 150.dp)
+                text = "Drag icon to move it.\nTouch tooltip to dismiss it.\nTouch arrows to move anchor edge.",
+                modifier = Modifier.widthIn(max = 200.dp)
             )
         }
     }
@@ -139,12 +150,13 @@ private fun ConstraintLayoutScope.BottomPanel(
 @Composable
 private fun ConstraintLayoutScope.AnchorChangeButtons(
     anchorEdgeState: MutableState<AnchorEdge>,
+    tooltipVisibleState: MutableState<Boolean>,
     refs: ConstraintLayoutScope.ConstrainedLayoutReferences,
     anchor: ConstrainedLayoutReference
 ) {
     val padding = 8.dp
     val anchorEdge by anchorEdgeState
-    if (anchorEdge != AnchorEdge.Start) {
+    if (!tooltipVisibleState.value || anchorEdge != AnchorEdge.Start) {
         Text(
             text = "⬅",
             modifier = Modifier
@@ -152,11 +164,14 @@ private fun ConstraintLayoutScope.AnchorChangeButtons(
                     end.linkTo(anchor.start, 8.dp)
                     centerVerticallyTo(anchor)
                 }
+                .clickable {
+                    anchorEdgeState.value = AnchorEdge.Start
+                    tooltipVisibleState.value = true
+                }
                 .padding(padding)
-                .clickable { anchorEdgeState.value = AnchorEdge.Start }
         )
     }
-    if (anchorEdge != AnchorEdge.Top) {
+    if (!tooltipVisibleState.value || anchorEdge != AnchorEdge.Top) {
         Text(
             text = "⬆",
             modifier = Modifier
@@ -164,11 +179,14 @@ private fun ConstraintLayoutScope.AnchorChangeButtons(
                     bottom.linkTo(anchor.top, 8.dp)
                     centerHorizontallyTo(anchor)
                 }
+                .clickable {
+                    anchorEdgeState.value = AnchorEdge.Top
+                    tooltipVisibleState.value = true
+                }
                 .padding(padding)
-                .clickable { anchorEdgeState.value = AnchorEdge.Top }
         )
     }
-    if (anchorEdge != AnchorEdge.End) {
+    if (!tooltipVisibleState.value || anchorEdge != AnchorEdge.End) {
         Text(
             text = "➡",
             modifier = Modifier
@@ -176,11 +194,14 @@ private fun ConstraintLayoutScope.AnchorChangeButtons(
                     start.linkTo(anchor.end, 8.dp)
                     centerVerticallyTo(anchor)
                 }
+                .clickable {
+                    anchorEdgeState.value = AnchorEdge.End
+                    tooltipVisibleState.value = true
+                }
                 .padding(padding)
-                .clickable { anchorEdgeState.value = AnchorEdge.End }
         )
     }
-    if (anchorEdge != AnchorEdge.Bottom) {
+    if (!tooltipVisibleState.value || anchorEdge != AnchorEdge.Bottom) {
         Text(
             text = "⬇",
             modifier = Modifier
@@ -188,8 +209,11 @@ private fun ConstraintLayoutScope.AnchorChangeButtons(
                     top.linkTo(anchor.bottom, 8.dp)
                     centerHorizontallyTo(anchor)
                 }
+                .clickable {
+                    anchorEdgeState.value = AnchorEdge.Bottom
+                    tooltipVisibleState.value = true
+                }
                 .padding(padding)
-                .clickable { anchorEdgeState.value = AnchorEdge.Bottom }
         )
     }
 }
