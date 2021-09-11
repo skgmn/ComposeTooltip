@@ -20,3 +20,11 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+@Preview(showSystemUi = true)
+@Composable
+fun MainScreenPreview() {
+    ComposeTooltipTheme {
+        MainScreen()
+    }
+}
