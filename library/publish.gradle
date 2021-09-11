@@ -1,0 +1,58 @@
+apply plugin: "maven-publish"
+apply plugin: "signing"
+
+task sourceJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier "sources"
+}
+
+afterEvaluate {
+    publishing {
+        repositories {
+            maven {
+                url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+                credentials {
+                    username OSSRH_ID
+                    password OSSRH_PASSWORD
+                }
+            }
+        }
+        publications {
+            release(MavenPublication) {
+                from components.release
+
+                groupId = 'com.github.skgmn'
+                artifactId = 'composetooltip'
+                version = "0.1.0"
+
+                artifact(sourceJar)
+
+                pom {
+                    name = "ComposeTooltip"
+                    description = "Tooltip library for Jetpack Compose"
+                    url = "https://github.com/skgmn/ComposeTooltip"
+                    licenses {
+                        license {
+                            name = "MIT License"
+                            url = "http://opensource.org/licenses/MIT"
+                        }
+                    }
+                    developers {
+                        developer {
+                            id = "skgmn"
+                            name = "skgmn"
+                        }
+                    }
+                    scm {
+                        connection = "scm:git@github.com:skgmn/ComposeTooltip.git"
+                        developerConnection = "scm:git@github.com:skgmn/ComposeTooltip.git"
+                        url = "https://github.com/skgmn/ComposeTooltip"
+                    }
+                }
+            }
+        }
+    }
+    signing {
+        sign publishing.publications.release
+    }
+}
