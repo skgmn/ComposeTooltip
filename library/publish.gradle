@@ -12,8 +12,8 @@ afterEvaluate {
             maven {
                 url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
                 credentials {
-                    username OSSRH_ID
-                    password OSSRH_PASSWORD
+                    username findProperty("OSSRH_ID") ?: ""
+                    password findProperty("OSSRH_PASSWORD") ?: ""
                 }
             }
         }
@@ -23,7 +23,7 @@ afterEvaluate {
 
                 groupId = 'com.github.skgmn'
                 artifactId = 'composetooltip'
-                version = "0.1.0"
+                version = "0.2.0"
 
                 artifact(sourceJar)
 
