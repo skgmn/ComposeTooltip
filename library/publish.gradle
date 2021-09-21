@@ -12,8 +12,8 @@ afterEvaluate {
             maven {
                 url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
                 credentials {
-                    username OSSRH_ID
-                    password OSSRH_PASSWORD
+                    username findProperty("OSSRH_ID") ?: ""
+                    password findProperty("OSSRH_PASSWORD") ?: ""
                 }
             }
         }
