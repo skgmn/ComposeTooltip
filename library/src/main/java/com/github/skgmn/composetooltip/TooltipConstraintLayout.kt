@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import androidx.constraintlayout.compose.ConstrainedLayoutReference
 import androidx.constraintlayout.compose.ConstraintLayoutScope
 
@@ -201,7 +202,7 @@ private fun ConstraintLayoutScope.Tangent(
 ) = with(anchorEdge) {
     val tangentWidth = tooltipStyle.cornerRadius * 2 +
             tipPosition.offset.absoluteValue * 2 +
-            tooltipStyle.tipWidth
+            max(tooltipStyle.tipWidth, tooltipStyle.tipHeight)
     Spacer(
         modifier = Modifier
             .size(selectWidth(tangentWidth, 0.dp), selectHeight(tangentWidth, 0.dp))
@@ -224,46 +225,56 @@ private fun ConstraintLayoutScope.TooltipImpl(
         modifier = modifier,
         cornerRadius = tooltipStyle.cornerRadius,
         tipPosition = tipPosition,
-        tip = {
-            Box(modifier = Modifier
-                .size(
-                    width = anchorEdge.selectWidth(
-                        tooltipStyle.tipWidth,
-                        tooltipStyle.tipHeight
-                    ),
-                    height = anchorEdge.selectHeight(
-                        tooltipStyle.tipWidth,
-                        tooltipStyle.tipHeight
-                    )
-                )
-                .background(
-                    color = tooltipStyle.color,
-                    shape = GenericShape { size, layoutDirection ->
-                        drawTip(size, layoutDirection)
-                    }
-                )
-            )
-        },
-        content = {
-            Row(
-                modifier = Modifier
-                    .minSize(tooltipStyle)
-                    .background(
-                        color = tooltipStyle.color,
-                        shape = RoundedCornerShape(tooltipStyle.cornerRadius)
-                    )
-                    .padding(tooltipStyle.contentPadding),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                CompositionLocalProvider(
-                    LocalContentColor provides contentColorFor(tooltipStyle.color)
-                ) {
-                    content()
-                }
-            }
-        }
+        tip = { Tip(anchorEdge, tooltipStyle) },
+        content = { TooltipContentContainer(anchorEdge, tooltipStyle, content) }
     )
+}
+
+@Composable
+internal fun Tip(anchorEdge: AnchorEdge, tooltipStyle: TooltipStyle) = with(anchorEdge) {
+    Box(modifier = Modifier
+        .size(
+            width = anchorEdge.selectWidth(
+                tooltipStyle.tipWidth,
+                tooltipStyle.tipHeight
+            ),
+            height = anchorEdge.selectHeight(
+                tooltipStyle.tipWidth,
+                tooltipStyle.tipHeight
+            )
+        )
+        .background(
+            color = tooltipStyle.color,
+            shape = GenericShape { size, layoutDirection ->
+                this.drawTip(size, layoutDirection)
+            }
+        )
+    )
+}
+
+@Composable
+internal fun TooltipContentContainer(
+    anchorEdge: AnchorEdge,
+    tooltipStyle: TooltipStyle,
+    content: @Composable (RowScope.() -> Unit)
+) = with(anchorEdge) {
+    Row(
+        modifier = Modifier.Companion
+            .minSize(tooltipStyle)
+            .background(
+                color = tooltipStyle.color,
+                shape = RoundedCornerShape(tooltipStyle.cornerRadius)
+            )
+            .padding(tooltipStyle.contentPadding),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        CompositionLocalProvider(
+            LocalContentColor provides contentColorFor(tooltipStyle.color)
+        ) {
+            content()
+        }
+    }
 }
 
 private class TooltipReferences(scope: ConstraintLayoutScope) {

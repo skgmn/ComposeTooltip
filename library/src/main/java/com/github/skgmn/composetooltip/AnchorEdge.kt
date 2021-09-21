@@ -9,17 +9,28 @@ import androidx.compose.ui.unit.*
 import androidx.constraintlayout.compose.ConstrainScope
 import androidx.constraintlayout.compose.ConstrainedLayoutReference
 import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.ConstraintLayoutScope
+import kotlin.math.roundToInt
 
 abstract class AnchorEdge {
     @Composable
-    internal abstract fun ConstraintLayoutScope.TooltipContainer(
+    internal abstract fun TooltipContainer(
         modifier: Modifier,
         cornerRadius: Dp,
         tipPosition: EdgePosition,
         tip: @Composable () -> Unit,
         content: @Composable () -> Unit
     )
+
+    internal open fun calculatePopupPosition(
+        density: Density,
+        tooltipStyle: TooltipStyle,
+        tipPosition: EdgePosition,
+        anchorPosition: EdgePosition,
+        margin: Dp,
+        anchorBounds: IntRect,
+        layoutDirection: LayoutDirection,
+        popupContentSize: IntSize
+    ): IntOffset = IntOffset(0, 0)
 
     internal abstract fun ConstrainScope.outside(anchor: ConstrainedLayoutReference, margin: Dp)
     internal abstract fun ConstrainScope.align(anchor: ConstrainedLayoutReference, bias: Float)
@@ -55,6 +66,26 @@ abstract class AnchorEdge {
         override fun Modifier.minSize(tooltipStyle: TooltipStyle): Modifier = with(tooltipStyle) {
             return heightIn(min = cornerRadius * 2 + max(tipWidth, tipHeight))
         }
+
+        protected fun calculatePopupPositionY(
+            density: Density,
+            anchorBounds: IntRect,
+            anchorPosition: EdgePosition,
+            tooltipStyle: TooltipStyle,
+            tipPosition: EdgePosition,
+            popupContentSize: IntSize
+        ): Float = with(density) {
+            val contactPointY = anchorBounds.top +
+                    anchorBounds.height * anchorPosition.percent +
+                    anchorPosition.offset.toPx()
+            val tangentHeight = (tooltipStyle.cornerRadius * 2 +
+                    tipPosition.offset.absoluteValue * 2 +
+                    max(tooltipStyle.tipWidth, tooltipStyle.tipHeight)).toPx()
+            val tangentY = contactPointY - tangentHeight / 2
+            val tipMarginY = (popupContentSize.height - tangentHeight) * tipPosition.percent
+            val y = tangentY - tipMarginY
+            return y
+        }
     }
 
     abstract class HorizontalAnchorEdge : AnchorEdge() {
@@ -81,6 +112,38 @@ abstract class AnchorEdge {
         override fun Modifier.minSize(tooltipStyle: TooltipStyle): Modifier = with(tooltipStyle) {
             return widthIn(min = cornerRadius * 2 + max(tipWidth, tipHeight))
         }
+
+        protected fun calculatePopupPositionX(
+            density: Density,
+            layoutDirection: LayoutDirection,
+            anchorBounds: IntRect,
+            anchorPosition: EdgePosition,
+            tooltipStyle: TooltipStyle,
+            tipPosition: EdgePosition,
+            popupContentSize: IntSize
+        ): Float = with(density) {
+            val contactPointX = if (layoutDirection == LayoutDirection.Ltr) {
+                anchorBounds.left +
+                        anchorBounds.width * anchorPosition.percent +
+                        anchorPosition.offset.toPx()
+            } else {
+                anchorBounds.right -
+                        anchorBounds.width * anchorPosition.percent -
+                        anchorPosition.offset.toPx()
+            }
+            val tangentWidth = (tooltipStyle.cornerRadius * 2 +
+                    tipPosition.offset.absoluteValue * 2 +
+                    max(tooltipStyle.tipWidth, tooltipStyle.tipHeight)).toPx()
+            val tangentLeft = contactPointX - tangentWidth / 2
+            val tipMarginLeft = (popupContentSize.width - tangentWidth) *
+                    if (layoutDirection == LayoutDirection.Ltr) {
+                        tipPosition.percent
+                    } else {
+                        1f - tipPosition.percent
+                    }
+            val x = tangentLeft - tipMarginLeft
+            return x
+        }
     }
 
     object Start : VerticalAnchorEdge() {
@@ -106,7 +169,7 @@ abstract class AnchorEdge {
         }
 
         @Composable
-        override fun ConstraintLayoutScope.TooltipContainer(
+        override fun TooltipContainer(
             modifier: Modifier,
             cornerRadius: Dp,
             tipPosition: EdgePosition,
@@ -147,6 +210,32 @@ abstract class AnchorEdge {
                 }
             }
         }
+
+        override fun calculatePopupPosition(
+            density: Density,
+            tooltipStyle: TooltipStyle,
+            tipPosition: EdgePosition,
+            anchorPosition: EdgePosition,
+            margin: Dp,
+            anchorBounds: IntRect,
+            layoutDirection: LayoutDirection,
+            popupContentSize: IntSize
+        ): IntOffset = with(density) {
+            val y = calculatePopupPositionY(
+                density,
+                anchorBounds,
+                anchorPosition,
+                tooltipStyle,
+                tipPosition,
+                popupContentSize
+            )
+            val x = if (layoutDirection == LayoutDirection.Ltr) {
+                anchorBounds.left - margin.toPx() - popupContentSize.width
+            } else {
+                anchorBounds.right + margin.toPx()
+            }
+            return IntOffset(x.roundToInt(), y.roundToInt())
+        }
     }
 
     object Top : HorizontalAnchorEdge() {
@@ -162,7 +251,7 @@ abstract class AnchorEdge {
         }
 
         @Composable
-        override fun ConstraintLayoutScope.TooltipContainer(
+        override fun TooltipContainer(
             modifier: Modifier,
             cornerRadius: Dp,
             tipPosition: EdgePosition,
@@ -203,6 +292,29 @@ abstract class AnchorEdge {
                 }
             }
         }
+
+        override fun calculatePopupPosition(
+            density: Density,
+            tooltipStyle: TooltipStyle,
+            tipPosition: EdgePosition,
+            anchorPosition: EdgePosition,
+            margin: Dp,
+            anchorBounds: IntRect,
+            layoutDirection: LayoutDirection,
+            popupContentSize: IntSize
+        ): IntOffset = with(density) {
+            val x = calculatePopupPositionX(
+                density,
+                layoutDirection,
+                anchorBounds,
+                anchorPosition,
+                tooltipStyle,
+                tipPosition,
+                popupContentSize
+            )
+            val y = anchorBounds.top - margin.toPx() - popupContentSize.height
+            return IntOffset(x.roundToInt(), y.roundToInt())
+        }
     }
 
     object End : VerticalAnchorEdge() {
@@ -228,7 +340,7 @@ abstract class AnchorEdge {
         }
 
         @Composable
-        override fun ConstraintLayoutScope.TooltipContainer(
+        override fun TooltipContainer(
             modifier: Modifier,
             cornerRadius: Dp,
             tipPosition: EdgePosition,
@@ -269,6 +381,32 @@ abstract class AnchorEdge {
                 }
             }
         }
+
+        override fun calculatePopupPosition(
+            density: Density,
+            tooltipStyle: TooltipStyle,
+            tipPosition: EdgePosition,
+            anchorPosition: EdgePosition,
+            margin: Dp,
+            anchorBounds: IntRect,
+            layoutDirection: LayoutDirection,
+            popupContentSize: IntSize
+        ): IntOffset = with(density) {
+            val y = calculatePopupPositionY(
+                density,
+                anchorBounds,
+                anchorPosition,
+                tooltipStyle,
+                tipPosition,
+                popupContentSize
+            )
+            val x = if (layoutDirection == LayoutDirection.Ltr) {
+                anchorBounds.right + margin.toPx()
+            } else {
+                anchorBounds.left - margin.toPx() - popupContentSize.width
+            }
+            return IntOffset(x.roundToInt(), y.roundToInt())
+        }
     }
 
     object Bottom : HorizontalAnchorEdge() {
@@ -284,7 +422,7 @@ abstract class AnchorEdge {
         }
 
         @Composable
-        override fun ConstraintLayoutScope.TooltipContainer(
+        override fun TooltipContainer(
             modifier: Modifier,
             cornerRadius: Dp,
             tipPosition: EdgePosition,
@@ -324,6 +462,29 @@ abstract class AnchorEdge {
                     tip()
                 }
             }
+        }
+
+        override fun calculatePopupPosition(
+            density: Density,
+            tooltipStyle: TooltipStyle,
+            tipPosition: EdgePosition,
+            anchorPosition: EdgePosition,
+            margin: Dp,
+            anchorBounds: IntRect,
+            layoutDirection: LayoutDirection,
+            popupContentSize: IntSize
+        ): IntOffset = with(density) {
+            val x = calculatePopupPositionX(
+                density,
+                layoutDirection,
+                anchorBounds,
+                anchorPosition,
+                tooltipStyle,
+                tipPosition,
+                popupContentSize
+            )
+            val y = anchorBounds.bottom + margin.toPx()
+            return IntOffset(x.roundToInt(), y.roundToInt())
         }
     }
 }

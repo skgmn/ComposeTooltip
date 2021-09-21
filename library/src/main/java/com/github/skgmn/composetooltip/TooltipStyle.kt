@@ -1,5 +1,6 @@
 package com.github.skgmn.composetooltip
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
@@ -14,7 +15,7 @@ class TooltipStyle internal constructor(
     cornerRadius: Dp,
     tipWidth: Dp,
     tipHeight: Dp,
-    contentPadding: Dp
+    contentPadding: PaddingValues
 ) {
     /**
      * Background color of tooltip.
@@ -58,7 +59,7 @@ fun rememberTooltipStyle(
     cornerRadius: Dp = 8.dp,
     tipWidth: Dp = 24.dp,
     tipHeight: Dp = 8.dp,
-    contentPadding: Dp = 12.dp,
+    contentPadding: PaddingValues = PaddingValues(12.dp),
 ): TooltipStyle {
     return remember { TooltipStyle(color, cornerRadius, tipWidth, tipHeight, contentPadding) }
 }
