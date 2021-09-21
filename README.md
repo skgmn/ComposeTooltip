@@ -3,10 +3,14 @@
 # Setup
 
 ```gradle
-implementation "com.github.skgmn:composetooltip:0.1.0"
+implementation "com.github.skgmn:composetooltip:0.2.0"
 ```
 
-# Usage
+# Tooltip method
+
+`Tooltip` can be either used inside ConstraintLayout or displayed as a popup.
+
+# ConstraintLayout
 
 ## Basic example
 
@@ -28,8 +32,6 @@ ConstraintLayout {
     }
 }
 ```
-
-Note that `Tooltip` can only be used inside `ConstraintLayout`.
 
 ## Method signatures
 
@@ -74,3 +76,49 @@ fun ConstraintLayoutScope.Tooltip(
 
 * `enterTransition` - `EnterTransition` to be applied when the `visible` becomes true. Types of `EnterTransition` are listed [here](https://developer.android.com/jetpack/compose/animation#entertransition).
 * `exitTransition` - `ExitTransition` to be applied when the `visible` becomes false. Types of `ExitTransition` are listed [here](https://developer.android.com/jetpack/compose/animation#exittransition).
+
+# Popup
+
+```kotlin
+Box {
+    // Some other composables here
+    
+    // This Box is a conatiner for anchoring
+    Box {
+        Image(
+            painter = painterResource(R.drawable.some_image),
+            contentDescription = "Some image"
+        )
+        Tooltip(
+            anchorEdge = AnchorEdge.Top,
+        ) {
+            Text("This is my image!")
+        }
+    }
+}
+```
+
+When `Tooltip` is being displayed as a popup, an anchor and `Tooltip` should be put altogether inside one composable.
+
+## Method signatures
+
+```kotlin
+fun Tooltip(
+    anchorEdge: AnchorEdge,
+    modifier: Modifier = Modifier,
+    tooltipStyle: TooltipStyle = rememberTooltipStyle(),
+    tipPosition: EdgePosition = remember { EdgePosition() },
+    anchorPosition: EdgePosition = remember { EdgePosition() },
+    margin: Dp = 8.dp,
+    onDismissRequest: (() -> Unit)? = null,
+    properties: PopupProperties = remember { PopupProperties() },    
+    content: @Composable RowScope.() -> Unit
+)
+```
+
+* `onDismissRequest` - Executes when the user clicks outside of the tooltip.
+* `properties` - `PopupProperties` for further customization of this tooltip's behavior.
+
+Other parameteres are same as for ConstraintLayout.
+
+There is also an another version of supporting transition.
