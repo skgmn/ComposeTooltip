@@ -4,8 +4,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.material.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -21,6 +21,30 @@ private const val TRANSITION_ENTER = 1
 private const val TRANSITION_EXIT = 2
 private const val TRANSITION_GONE = 3
 
+/**
+ * Show a tooltip as popup near to an anchor.
+ * Anchor can be provided by putting the anchor and Tooltip altogether in one composable.
+ *
+ * Example:
+ * ```kotlin
+ * Box {
+ *     AnchorComposable()
+ *     Tooltip()
+ * }
+ * ```
+ *
+ * @param anchorEdge Can be either of [AnchorEdge.Start], [AnchorEdge.Top], [AnchorEdge.End],
+ *   or [AnchorEdge.Bottom]
+ * @param modifier Modifier for tooltip. Do not use layout-related modifiers except size
+ *   constraints.
+ * @param tooltipStyle Style for tooltip. Can be created by [rememberTooltipStyle]
+ * @param tipPosition Tip position relative to balloon
+ * @param anchorPosition Position on the anchor's edge where the tip points out.
+ * @param margin Margin between tip and anchor
+ * @param onDismissRequest Executes when the user clicks outside of the tooltip.
+ * @param properties [PopupProperties] for further customization of this tooltip's behavior.
+ * @param content Content inside balloon. Typically [Text].
+ */
 @Composable
 fun Tooltip(
     anchorEdge: AnchorEdge,
@@ -55,6 +79,35 @@ fun Tooltip(
     }
 }
 
+/**
+ * Show a tooltip as popup near to an anchor with transition.
+ * As [AnimatedVisibility] is experimental, this function is also experimental.
+ * Anchor can be provided by putting the anchor and Tooltip altogether in one composable.
+ *
+ * Example:
+ * ```kotlin
+ * Box {
+ *     AnchorComposable()
+ *     Tooltip()
+ * }
+ * ```
+ *
+ * @param anchorEdge Can be either of [AnchorEdge.Start], [AnchorEdge.Top], [AnchorEdge.End],
+ *   or [AnchorEdge.Bottom]
+ * @param enterTransition [EnterTransition] to be applied when the [visible] becomes true.
+ *   Types of [EnterTransition] are listed [here](https://developer.android.com/jetpack/compose/animation#entertransition).
+ * @param exitTransition [ExitTransition] to be applied when the [visible] becomes false.
+ *   Types of [ExitTransition] are listed [here](https://developer.android.com/jetpack/compose/animation#exittransition).
+ * @param modifier Modifier for tooltip. Do not use layout-related modifiers except size
+ *   constraints.
+ * @param tooltipStyle Style for tooltip. Can be created by [rememberTooltipStyle]
+ * @param tipPosition Tip position relative to balloon
+ * @param anchorPosition Position on the anchor's edge where the tip points out.
+ * @param margin Margin between tip and anchor
+ * @param onDismissRequest Executes when the user clicks outside of the tooltip.
+ * @param properties [PopupProperties] for further customization of this tooltip's behavior.
+ * @param content Content inside balloon. Typically [Text].
+ */
 @ExperimentalAnimationApi
 @Composable
 fun Tooltip(
@@ -148,7 +201,7 @@ private fun AnchorEdge.TooltipImpl(
     tipPosition: EdgePosition,
     anchorEdge: AnchorEdge,
     modifier: Modifier = Modifier,
-    content: @Composable() (RowScope.() -> Unit)
+    content: @Composable (RowScope.() -> Unit)
 ) {
     TooltipContainer(
         modifier = modifier,
