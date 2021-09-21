@@ -1,220 +1,89 @@
 package com.github.skgmn.composetooltip.sample
 
-import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Slider
-import androidx.compose.material.Text
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.consumeAllChanges
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.ConstrainedLayoutReference
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.constraintlayout.compose.ConstraintLayoutScope
-import com.github.skgmn.composetooltip.AnchorEdge
-import com.github.skgmn.composetooltip.EdgePosition
-import com.github.skgmn.composetooltip.Tooltip
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import java.lang.IllegalStateException
 
-@OptIn(ExperimentalAnimationApi::class)
+private const val EXAMPLE_CONSTRAINT_LAYOUT = 0
+private const val EXAMPLE_POPUP = 1
+
 @Composable
 fun MainScreen() {
-    var screenSize by remember { mutableStateOf(IntSize.Zero) }
-    ConstraintLayout(
-        modifier = Modifier
-            .fillMaxSize()
-            .onSizeChanged { screenSize = it }
-    ) {
-        val anchorEdgeState = remember { mutableStateOf<AnchorEdge>(AnchorEdge.Top) }
-
-        var imageBiasX by remember { mutableStateOf(0.5f) }
-        var imageBiasY by remember { mutableStateOf(0.5f) }
-
-        val tipPosition = remember { EdgePosition() }
-        val anchorPosition = remember { EdgePosition() }
-
-        val tooltipVisibleState = remember { mutableStateOf(true) }
-
-        val anchor = createRef()
-        val arrows = createRefs()
-        val bottomPanel = createRef()
-
-        BottomPanel(bottomPanel, tipPosition, anchorPosition)
-
-        Image(
-            painter = painterResource(R.drawable.dummy),
-            contentDescription = "dummy",
-            modifier = Modifier
-                .constrainAs(anchor) {
-                    linkTo(
-                        parent.start, parent.top, parent.end, parent.bottom,
-                        horizontalBias = imageBiasX,
-                        verticalBias = imageBiasY
+    val scaffoldState = rememberScaffoldState()
+    val scope = rememberCoroutineScope()
+    var exampleType by remember { mutableStateOf(EXAMPLE_CONSTRAINT_LAYOUT) }
+    Scaffold(
+        scaffoldState = scaffoldState,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        when (exampleType) {
+                            EXAMPLE_CONSTRAINT_LAYOUT -> "Tooltip with ConstraintLayout"
+                            EXAMPLE_POPUP -> "Tooltip as Popup"
+                            else -> throw IllegalStateException()
+                        }
                     )
-                }
-                .size(64.dp)
-                .background(Color(0xffff0000))
-                .pointerInput(Unit) {
-                    detectDragGestures { change, dragAmount ->
-                        change.consumeAllChanges()
-                        imageBiasX += dragAmount.x / screenSize.width
-                        imageBiasY += dragAmount.y / screenSize.height
+                },
+                navigationIcon = {
+                    IconButton(onClick = { toggleDrawer(scaffoldState, scope) }) {
+                        Icon(
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = "Menu"
+                        )
                     }
                 }
-        )
-
-        AnchorChangeButtons(anchorEdgeState, tooltipVisibleState, arrows, anchor)
-
-        Tooltip(
-            anchor = anchor,
-            anchorEdge = anchorEdgeState.value,
-            visible = tooltipVisibleState.value,
-            enterTransition = fadeIn(),
-            exitTransition = fadeOut(),
-            tipPosition = tipPosition,
-            anchorPosition = anchorPosition,
-            modifier = Modifier
-                .clickable(remember { MutableInteractionSource() }, null) {
-                    tooltipVisibleState.value = false
-                }
-        ) {
+            )
+        },
+        drawerContent = {
             Text(
-                text = "Drag icon to move it.\nTouch tooltip to dismiss it.\nTouch arrows to move anchor edge.",
-                modifier = Modifier.widthIn(max = 200.dp)
+                text = "Tooltip with ConstraintLayout",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        toggleDrawer(scaffoldState, scope)
+                        exampleType = EXAMPLE_CONSTRAINT_LAYOUT
+                    }
+                    .padding(16.dp)
+            )
+            Text(
+                text = "Tooltip as Popup",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        toggleDrawer(scaffoldState, scope)
+                        exampleType = EXAMPLE_POPUP
+                    }
+                    .padding(16.dp)
             )
         }
-    }
-}
-
-@Composable
-private fun ConstraintLayoutScope.BottomPanel(
-    ref: ConstrainedLayoutReference,
-    tipPosition: EdgePosition,
-    anchorPosition: EdgePosition
-) {
-    val firstColumnWeight = 0.3f
-    Column(
-        modifier = Modifier
-            .constrainAs(ref) {
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                bottom.linkTo(parent.bottom)
-            }
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Tip position",
-                modifier = Modifier.weight(firstColumnWeight)
-            )
-            Slider(
-                value = tipPosition.percent,
-                onValueChange = { tipPosition.percent = it },
-                modifier = Modifier.weight(1f - firstColumnWeight)
-            )
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Anchor position",
-                modifier = Modifier.weight(firstColumnWeight)
-            )
-            Slider(
-                value = anchorPosition.percent,
-                onValueChange = { anchorPosition.percent = it },
-                modifier = Modifier.weight(1f - firstColumnWeight)
-            )
+        when (exampleType) {
+            EXAMPLE_CONSTRAINT_LAYOUT -> ExampleConstraintLayout(contentPaddings = it)
+            EXAMPLE_POPUP -> ExamplePopup(contentPaddings = it, scaffoldState = scaffoldState)
         }
     }
 }
 
-@Composable
-private fun ConstraintLayoutScope.AnchorChangeButtons(
-    anchorEdgeState: MutableState<AnchorEdge>,
-    tooltipVisibleState: MutableState<Boolean>,
-    refs: ConstraintLayoutScope.ConstrainedLayoutReferences,
-    anchor: ConstrainedLayoutReference
+private fun toggleDrawer(
+    scaffoldState: ScaffoldState,
+    scope: CoroutineScope
 ) {
-    val padding = 8.dp
-    val anchorEdge by anchorEdgeState
-    if (!tooltipVisibleState.value || anchorEdge != AnchorEdge.Start) {
-        Text(
-            text = "⬅",
-            modifier = Modifier
-                .constrainAs(refs.component1()) {
-                    end.linkTo(anchor.start, 8.dp)
-                    centerVerticallyTo(anchor)
-                }
-                .clickable {
-                    anchorEdgeState.value = AnchorEdge.Start
-                    tooltipVisibleState.value = true
-                }
-                .padding(padding)
-        )
-    }
-    if (!tooltipVisibleState.value || anchorEdge != AnchorEdge.Top) {
-        Text(
-            text = "⬆",
-            modifier = Modifier
-                .constrainAs(refs.component2()) {
-                    bottom.linkTo(anchor.top, 8.dp)
-                    centerHorizontallyTo(anchor)
-                }
-                .clickable {
-                    anchorEdgeState.value = AnchorEdge.Top
-                    tooltipVisibleState.value = true
-                }
-                .padding(padding)
-        )
-    }
-    if (!tooltipVisibleState.value || anchorEdge != AnchorEdge.End) {
-        Text(
-            text = "➡",
-            modifier = Modifier
-                .constrainAs(refs.component3()) {
-                    start.linkTo(anchor.end, 8.dp)
-                    centerVerticallyTo(anchor)
-                }
-                .clickable {
-                    anchorEdgeState.value = AnchorEdge.End
-                    tooltipVisibleState.value = true
-                }
-                .padding(padding)
-        )
-    }
-    if (!tooltipVisibleState.value || anchorEdge != AnchorEdge.Bottom) {
-        Text(
-            text = "⬇",
-            modifier = Modifier
-                .constrainAs(refs.component4()) {
-                    top.linkTo(anchor.bottom, 8.dp)
-                    centerHorizontallyTo(anchor)
-                }
-                .clickable {
-                    anchorEdgeState.value = AnchorEdge.Bottom
-                    tooltipVisibleState.value = true
-                }
-                .padding(padding)
-        )
+    if (!scaffoldState.drawerState.isAnimationRunning) {
+        scope.launch {
+            if (scaffoldState.drawerState.isClosed) {
+                scaffoldState.drawerState.open()
+            } else {
+                scaffoldState.drawerState.close()
+            }
+        }
     }
 }
