@@ -24,6 +24,7 @@ private const val TRANSITION_GONE = 3
 @Composable
 fun Tooltip(
     anchorEdge: AnchorEdge,
+    modifier: Modifier = Modifier,
     tooltipStyle: TooltipStyle = rememberTooltipStyle(),
     tipPosition: EdgePosition = remember { EdgePosition() },
     anchorPosition: EdgePosition = remember { EdgePosition() },
@@ -45,6 +46,7 @@ fun Tooltip(
         properties = properties
     ) {
         TooltipImpl(
+            modifier = modifier,
             tooltipStyle = tooltipStyle,
             tipPosition = tipPosition,
             anchorEdge = anchorEdge,
@@ -53,35 +55,13 @@ fun Tooltip(
     }
 }
 
-@Composable
-private fun AnchorEdge.TooltipImpl(
-    tooltipStyle: TooltipStyle,
-    tipPosition: EdgePosition,
-    anchorEdge: AnchorEdge,
-    modifier: Modifier = Modifier,
-    content: @Composable() (RowScope.() -> Unit)
-) {
-    TooltipContainer(
-        modifier = modifier,
-        cornerRadius = tooltipStyle.cornerRadius,
-        tipPosition = tipPosition,
-        tip = { Tip(anchorEdge, tooltipStyle) },
-        content = {
-            TooltipContentContainer(
-                anchorEdge = anchorEdge,
-                tooltipStyle = tooltipStyle,
-                content = content
-            )
-        }
-    )
-}
-
 @ExperimentalAnimationApi
 @Composable
 fun Tooltip(
     anchorEdge: AnchorEdge,
     enterTransition: EnterTransition,
     exitTransition: ExitTransition,
+    modifier: Modifier = Modifier,
     visible: Boolean = true,
     tooltipStyle: TooltipStyle = rememberTooltipStyle(),
     tipPosition: EdgePosition = remember { EdgePosition() },
@@ -127,7 +107,7 @@ fun Tooltip(
                     tooltipStyle = tooltipStyle,
                     tipPosition = tipPosition,
                     anchorEdge = anchorEdge,
-                    modifier = Modifier.alpha(0f),
+                    modifier = modifier.alpha(0f),
                     content = content,
                 )
             }
@@ -151,6 +131,7 @@ fun Tooltip(
                     }
                 }
                 TooltipImpl(
+                    modifier = modifier,
                     tooltipStyle = tooltipStyle,
                     tipPosition = tipPosition,
                     anchorEdge = anchorEdge,
@@ -159,6 +140,29 @@ fun Tooltip(
             }
         }
     }
+}
+
+@Composable
+private fun AnchorEdge.TooltipImpl(
+    tooltipStyle: TooltipStyle,
+    tipPosition: EdgePosition,
+    anchorEdge: AnchorEdge,
+    modifier: Modifier = Modifier,
+    content: @Composable() (RowScope.() -> Unit)
+) {
+    TooltipContainer(
+        modifier = modifier,
+        cornerRadius = tooltipStyle.cornerRadius,
+        tipPosition = tipPosition,
+        tip = { Tip(anchorEdge, tooltipStyle) },
+        content = {
+            TooltipContentContainer(
+                anchorEdge = anchorEdge,
+                tooltipStyle = tooltipStyle,
+                content = content
+            )
+        }
+    )
 }
 
 private class TooltipPopupPositionProvider(
