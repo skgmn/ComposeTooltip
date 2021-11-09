@@ -41,6 +41,7 @@ abstract class AnchorEdge {
     internal abstract fun selectHeight(width: Dp, height: Dp): Dp
     internal abstract fun Modifier.minSize(tooltipStyle: TooltipStyle): Modifier
     internal abstract fun Path.drawTip(size: Size, layoutDirection: LayoutDirection)
+    internal abstract fun Path.drawTipBorder(size: Size, layoutDirection: LayoutDirection)
 
     abstract class VerticalAnchorEdge : AnchorEdge() {
         override fun ConstrainScope.align(anchor: ConstrainedLayoutReference, bias: Float) {
@@ -168,6 +169,13 @@ abstract class AnchorEdge {
             }
         }
 
+        override fun Path.drawTipBorder(size: Size, layoutDirection: LayoutDirection) {
+            moveTo(0f, 0f)
+            lineTo(size.width / 2f, size.height)
+            lineTo(size.width , 0f)
+//            close()
+        }
+
         @Composable
         override fun TooltipContainer(
             modifier: Modifier,
@@ -250,6 +258,14 @@ abstract class AnchorEdge {
             lineTo(0f, 0f)
         }
 
+        override fun Path.drawTipBorder(size: Size, layoutDirection: LayoutDirection) {
+            moveTo(0f, 0f)
+            lineTo(size.width / 2f, size.height)
+            lineTo(size.width , 0f)
+            moveTo(0f, 0f)
+            close()
+        }
+
         @Composable
         override fun TooltipContainer(
             modifier: Modifier,
@@ -284,7 +300,7 @@ abstract class AnchorEdge {
                                 contentContainer.end,
                                 bias = tipPosition.percent
                             )
-                            top.linkTo(contentContainer.bottom)
+                            top.linkTo(contentContainer.bottom, margin = (-2.1).dp)
                         }
                         .padding(start = tipPadding, end = tipPadding)
                 ) {
@@ -337,6 +353,13 @@ abstract class AnchorEdge {
                     lineTo(0f, 0f)
                 }
             }
+        }
+
+        override fun Path.drawTipBorder(size: Size, layoutDirection: LayoutDirection) {
+            moveTo(0f, 0f)
+            lineTo(size.width / 2f, size.height)
+            lineTo(size.width , 0f)
+//            close()
         }
 
         @Composable
@@ -421,6 +444,16 @@ abstract class AnchorEdge {
             lineTo(0f, size.height)
         }
 
+        override fun Path.drawTipBorder(size: Size, layoutDirection: LayoutDirection) {
+            moveTo(0f, size.height)
+            lineTo(size.width / 2f, 0f)
+            lineTo(size.width, size.height)
+            moveTo(0f, size.height)
+
+
+            close()
+        }
+
         @Composable
         override fun TooltipContainer(
             modifier: Modifier,
@@ -450,12 +483,14 @@ abstract class AnchorEdge {
                 Box(
                     modifier = Modifier
                         .constrainAs(tipContainer) {
+
                             linkTo(
                                 contentContainer.start,
                                 contentContainer.end,
                                 bias = tipPosition.percent
                             )
-                            bottom.linkTo(contentContainer.top)
+
+                            bottom.linkTo(contentContainer.top, margin = (-2.1).dp)
                         }
                         .padding(start = tipPadding, end = tipPadding)
                 ) {
