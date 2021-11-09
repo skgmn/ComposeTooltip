@@ -22,9 +22,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.github.skgmn.composetooltip.AnchorEdge
-import com.github.skgmn.composetooltip.EdgePosition
-import com.github.skgmn.composetooltip.Tooltip
+import com.github.skgmn.composetooltip.*
 import kotlinx.coroutines.flow.dropWhile
 import kotlinx.coroutines.flow.firstOrNull
 
@@ -48,6 +46,12 @@ fun ExamplePopup(
         val anchorPosition = remember { EdgePosition() }
 
         var tooltipVisible by remember { mutableStateOf(false) }
+
+        var tooltipStyle = rememberTooltipStyle(
+            color = Color.LightGray,
+            border = TooltipBorder(borderWidth = 2.dp, borderColor = Color.White),
+            tipHeight = 14.dp
+        )
 
         LaunchedEffect(Unit) {
             snapshotFlow { scaffoldState.drawerState.isClosed }
@@ -113,6 +117,7 @@ fun ExamplePopup(
                         exitTransition = fadeOut(),
                         tipPosition = tipPosition,
                         anchorPosition = anchorPosition,
+                        tooltipStyle = tooltipStyle,
                         modifier = Modifier.clickable(
                             remember { MutableInteractionSource() },
                             null
