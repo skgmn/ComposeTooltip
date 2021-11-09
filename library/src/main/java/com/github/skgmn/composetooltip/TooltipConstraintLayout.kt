@@ -6,6 +6,7 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,6 +16,7 @@ import androidx.compose.material.contentColorFor
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
@@ -243,6 +245,13 @@ internal fun Tip(anchorEdge: AnchorEdge, tooltipStyle: TooltipStyle) = with(anch
                 tooltipStyle.tipHeight
             )
         )
+        .border(
+            width = tooltipStyle.border.borderWidth,
+            color = tooltipStyle.border.borderColor,
+            shape = GenericShape { size, layoutDirection ->
+                this.drawTipBorder(size, layoutDirection)
+            }
+        )
         .background(
             color = tooltipStyle.color,
             shape = GenericShape { size, layoutDirection ->
@@ -261,6 +270,11 @@ internal fun TooltipContentContainer(
     Row(
         modifier = Modifier.Companion
             .minSize(tooltipStyle)
+            .border(
+                width = tooltipStyle.border.borderWidth,
+                color = tooltipStyle.border.borderColor,
+                shape = RoundedCornerShape(tooltipStyle.cornerRadius),
+            )
             .background(
                 color = tooltipStyle.color,
                 shape = RoundedCornerShape(tooltipStyle.cornerRadius)
