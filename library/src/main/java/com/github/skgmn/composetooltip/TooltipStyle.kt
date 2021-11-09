@@ -15,7 +15,8 @@ class TooltipStyle internal constructor(
     cornerRadius: Dp,
     tipWidth: Dp,
     tipHeight: Dp,
-    contentPadding: PaddingValues
+    contentPadding: PaddingValues,
+    border: TooltipBorder,
 ) {
     /**
      * Background color of tooltip.
@@ -41,6 +42,8 @@ class TooltipStyle internal constructor(
      * Padding between balloon and content.
      */
     var contentPadding by mutableStateOf(contentPadding)
+
+    var border by mutableStateOf(border)
 }
 
 /**
@@ -60,6 +63,7 @@ fun rememberTooltipStyle(
     tipWidth: Dp = 24.dp,
     tipHeight: Dp = 8.dp,
     contentPadding: PaddingValues = PaddingValues(12.dp),
+    border: TooltipBorder = TooltipBorder(0.dp, Color.Transparent)
 ): TooltipStyle {
-    return remember { TooltipStyle(color, cornerRadius, tipWidth, tipHeight, contentPadding) }
+    return remember { TooltipStyle(color, cornerRadius, tipWidth, tipHeight, contentPadding, border) }
 }
